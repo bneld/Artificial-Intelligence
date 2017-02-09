@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TeamClientConfig>
 	<!-- The name of the client class (this is used to construct the client so it needs to be the full class name) -->
-	<classname>neld9968.Project1Agent</classname>
+	<classname>neld9968.LITBOIZ</classname>
 	
 	<!-- You can choose the color your team's ships will be on the screen.  Specify the red, green, and blue components -->
-	<teamColorRed>0</teamColorRed>
-	<teamColorGreen>153</teamColorGreen>
-	<teamColorBlue>153</teamColorBlue>
+	<teamColorRed>255</teamColorRed>
+	<teamColorGreen>0</teamColorGreen>
+	<teamColorBlue>255</teamColorBlue>
 	
 	<!-- The name that shows up in the ladder -->
 	<ladderName>#LITBOIZ (Luis n Brian)</ladderName>
