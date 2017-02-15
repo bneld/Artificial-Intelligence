@@ -1,28 +1,21 @@
 package neld9968;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import spacesettlers.actions.AbstractAction;
-import spacesettlers.actions.DoNothingAction;
-import spacesettlers.actions.MoveAction;
-import spacesettlers.actions.MoveToObjectAction;
-import spacesettlers.actions.PurchaseCosts;
-import spacesettlers.actions.PurchaseTypes;
+import spacesettlers.actions.*;
+import spacesettlers.objects.*;
+import spacesettlers.objects.powerups.*;
+import spacesettlers.objects.resources.*;
 import spacesettlers.clients.TeamClient;
+import spacesettlers.graphics.CircleGraphics;
 import spacesettlers.graphics.SpacewarGraphics;
-import spacesettlers.objects.AbstractActionableObject;
-import spacesettlers.objects.AbstractObject;
-import spacesettlers.objects.Asteroid;
-import spacesettlers.objects.Base;
-import spacesettlers.objects.Beacon;
-import spacesettlers.objects.Ship;
-import spacesettlers.objects.powerups.SpaceSettlersPowerupEnum;
-import spacesettlers.objects.resources.ResourcePile;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.Position;
 
@@ -39,6 +32,7 @@ public class LITBOIZ extends TeamClient {
 	UUID asteroidCollectorID;
 	Ship ourShip;
 	Position oldEnemyPosition;
+	Position targetedPosition;
 
 	/**
 	 * Assigns ships to be attack or resource ships (currently only 1 attack ship)
@@ -75,52 +69,63 @@ public class LITBOIZ extends TeamClient {
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
 		Mastermind.incFireTimer();
+		AbstractAction newAction = null;
 
 		// aim for a beacon if there isn't enough energy
 		if (ship.getEnergy() < 600) {
-			return getBeaconAction(space, ship);
+			newAction = getBeaconAction(space, ship);
 		}
 		
 		//if ship is damaged, try evasive action
-		if(ship.getEnergy() < Mastermind.getOldShipEnergy()){
+//		else if(ship.getEnergy() < Mastermind.getOldShipEnergy()){
 //			System.out.println("Evade");
-			AbstractAction newAction = null;
-			
-			//if ship is already evading, stay on evade course
-			if(Mastermind.getCurrentAction().equals(Mastermind.ACTION_EVADE)){
-				newAction = ship.getCurrentAction();
-			}
-			else {
-				Mastermind.setCurrentAction(Mastermind.ACTION_EVADE);
-				Ship enemy = Mastermind.pickNearestEnemyShip(space, ship);
-				if(space.findShortestDistance(ship.getPosition(), enemy.getPosition()) < 300){
-					Random rand = new Random();
-					Position newPos = space.getRandomFreeLocationInRegion(rand, ship.getRadius(), (int)ship.getPosition().getX(), (int)ship.getPosition().getY(), 100);
-					newAction = new MoveAction(space, ship.getPosition(), newPos);
-//					System.out.println("Evade");
-				}
-			}
-			
-			return newAction;
-		}
-//		Mastermind.setOldShipEnergy(ship.getEnergy());
+//			
+//			//if ship is already evading, stay on evade course
+//			if(Mastermind.getCurrentAction().equals(Mastermind.ACTION_EVADE)){
+//				if(ship.getCurrentAction().isMovementFinished(space)){
+//					//stop evading
+//					newAction = getChaseAction(space, ship);
+//				}
+//				else {
+//					//continue evasion path
+//					newAction = ship.getCurrentAction();
+//				}
+//			}
+//			else {
+//				Mastermind.setCurrentAction(Mastermind.ACTION_EVADE);
+//				Ship enemy = Mastermind.pickNearestEnemyShip(space, ship);
+//				if(space.findShortestDistance(ship.getPosition(), enemy.getPosition()) < 300){
+//					Random rand = new Random();
+//					Position newPos = space.getRandomFreeLocationInRegion(rand, ship.getRadius(), (int)ship.getPosition().getX(), (int)ship.getPosition().getY(), 100);
+//					newAction = new MoveAction(space, ship.getPosition(), newPos);
+////					System.out.println("Evade");
+//				}
+//				else {
+//					newAction = getChaseAction(space, ship);
+//				}
+//			}
+//		}
 		
 		// did we bounce off the base?
-		if (ship.getResources().getTotal() == 0 && ship.getEnergy() > 2000 && aimingForBase.containsKey(ship.getId()) && aimingForBase.get(ship.getId())) {
+		else if (ship.getResources().getTotal() == 0 && ship.getEnergy() > 2000 && aimingForBase.containsKey(ship.getId()) && aimingForBase.get(ship.getId())) {
 			current = null;
 			aimingForBase.put(ship.getId(), false);
+			newAction = getChaseAction(space, ship);
 		}
 
 		// otherwise aim for the nearest enemy ship
-		if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)) {
+		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)) {
 //		if (current == null || current.isMovementFinished(space)) {
-			return getChaseAction(space, ship);
+			newAction =  getChaseAction(space, ship);
 		} 
 		
 		else {
 //			System.out.println("Repeating current action");
-			return ship.getCurrentAction();
-		}
+			newAction = ship.getCurrentAction();
+		}	
+		
+		Mastermind.setOldShipEnergy(ship.getEnergy());
+		return newAction;
 	}
 	
 	public AbstractAction getBeaconAction(Toroidal2DPhysics space, Ship ship){
@@ -142,19 +147,24 @@ public class LITBOIZ extends TeamClient {
 	        }
 	        else if(distanceToBeacon < 50){ //slow down and directly target enemy
 	            newAction = new MoveToObjectAction(space, currentPosition, beacon);
+	            targetedPosition = null;
 //				System.out.println("Move Directly To Beacon");
 	        }
 	        else { //this inflates the objective position
 	        	Position inflatedBeaconPosition = Mastermind.inflatePosition(space, currentPosition, beaconPos, 200);
 				
 				//check for obstacles
-//				if(!space.isPathClearOfObstructions(currentPosition, inflatedBeaconPosition, space.getAllObjects(), 30)){
-//					System.out.println("AWWWWW POOP ICEBERG AHEAD");
-//				}
+				if(!space.isPathClearOfObstructions(currentPosition, inflatedBeaconPosition, space.getAllObjects(), 30)){
+					System.out.println("AWWWWW POOP ICEBERG AHEAD");
+					Position midpoint = Mastermind.findMidpoint(currentPosition, inflatedBeaconPosition);
+					inflatedBeaconPosition = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
+					System.out.println("Currently at (" + currentPosition.getX() + ", " + currentPosition.getY() + ")");
+					System.out.println("Altering to (" + inflatedBeaconPosition.getX() + ", " + inflatedBeaconPosition.getY() + ")");
+				}
 				
 				newAction = new MoveAction(space, currentPosition, inflatedBeaconPosition);
 //				System.out.println("Move To Inflated Beacon Position");
-
+//				targetedPosition = inflatedBeaconPosition;
 	        }
 			
 			aimingForBase.put(ship.getId(), false);
@@ -185,24 +195,34 @@ public class LITBOIZ extends TeamClient {
 			}
 		} 
 		else {
-			
-			//distance inflation
-			//TODO inflation doesn't handle screen wrap-around
 	        Position enemyPos = enemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
 	        if(enemyPos.getX() == currentPosition.getX()){ //prevent infinite slope
 	            newAction = new MoveToObjectAction(space, currentPosition, enemy);
 	//            System.out.println("Move Directly To Enemy");
 	        }
-	        else if(distanceToEnemy < 150){ //slow down and directly target enemy
+	        else if(distanceToEnemy < 100){ //slow down and directly target enemy
 	            newAction = new MoveToObjectAction(space, currentPosition, enemy);
-	//            System.out.println("Move Directly To Enemy " + distanceToEnemy);
+	            System.out.println("Move Directly To Enemy " + distanceToEnemy);
+	            targetedPosition = null;
 	        }
 	        else{ //target past enemy to increase velocity
-	        	Position inflatedPosition = Mastermind.inflatePosition(space, currentPosition, enemyPos, 200);
-	            newAction = new MoveAction(space, currentPosition, inflatedPosition);
-//	            System.out.println("Enemy to Inflated: " + space.findShortestDistance(enemyPos, inflatedPosition));
-//              System.out.println("Move To Inflated Enemy Position");
+	        	//TODO inflation doesn't handle screen wrap-around
+	        	Position target;
+	        	if(Mastermind.getOldEnemyPosition() == null){
+	        		target = Mastermind.inflatePosition(space, currentPosition, enemyPos, 200);
+	        	} else {
+	        		target = Mastermind.predictPath(space, Mastermind.getOldEnemyPosition(), enemyPos, 300);
+	        		targetedPosition = target;
+	        	}
+	        	
+	        	//check for obstacles
+				if(!space.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space), 30)){
+					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
+					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
+	        	}
+				Mastermind.setOldEnemyPosition(enemyPos);
+	        	newAction = new MoveAction(space, currentPosition, target);	            
 	        }
 		}
 		return newAction;
@@ -223,8 +243,6 @@ public class LITBOIZ extends TeamClient {
 		for (Asteroid asteroid : finishedAsteroids) {
 			asteroidToShipMap.remove(asteroid);
 		}
-
-
 	}
 
 	@Override
@@ -240,10 +258,16 @@ public class LITBOIZ extends TeamClient {
 
 	}
 
+	/**
+	 * Return any graphics that the team client wants to draw
+	 * @return a set of objects that extend the SpacewarGraphics class
+	 */
 	@Override
 	public Set<SpacewarGraphics> getGraphics() {
-		// TODO Auto-generated method stub
-		return null;
+		if(targetedPosition == null) return null;
+		Set<SpacewarGraphics> set = new HashSet<>();
+		set.add(new CircleGraphics(20, Color.RED, targetedPosition));
+		return set;
 	}
 
 	@Override

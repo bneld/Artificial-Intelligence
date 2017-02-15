@@ -1,5 +1,6 @@
 package neld9968;
 
+import spacesettlers.objects.AbstractObject;
 //import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Base;
 import spacesettlers.objects.Beacon;
@@ -8,6 +9,8 @@ import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.actions.DoNothingAction;
 import spacesettlers.actions.MoveAction;
 import spacesettlers.actions.MoveToObjectAction;
+
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,8 +26,6 @@ import spacesettlers.utilities.Position;
  */
 public class Mastermind {
 
-//	static HashMap <UUID, Boolean> aimingForBase;
-
 	//flags for different actions
 	public final static String ACTION_DO_NOTHING = "Do nothing";
 	public final static String ACTION_CHASE_ENEMY = "Chase enemy";
@@ -35,6 +36,7 @@ public class Mastermind {
 	private static String currentAction = "";
 	private static double oldShipEnergy = Double.MIN_VALUE;
 	private static int fireTimer;
+	private static Position oldEnemyPosition;
 	
 	/**
 	 * Gets the action for the ship
@@ -240,4 +242,64 @@ public class Mastermind {
         Position inflatedPosition = new Position(newX, newY); // create new position
         return inflatedPosition;
     }
+    
+    public static Position findMidpoint(Position start, Position objective){
+    	double x = (objective.getX() + start.getX()) / 2.0;
+    	double y = (objective.getY() + start.getY()) / 2.0;
+    	return new Position(x, y);
+    }
+    
+    /** 
+     * Method that returns a rotated position to veer around obstacles
+     * @param space - the simulator environment
+     * @param start - the position of your ship
+     * @param objective - position of destination
+     * @param angle - angle of alternate path in radians
+     */
+    public static Position alterPath(Position start, Position objective, double angle){
+    	
+    	//translate point to origin 
+    	double originX = objective.getX() - start.getX();
+    	double originY = objective.getY() - start.getY();
+    	
+    	//rotate about origin
+    	double rotatedOriginX = originX * Math.cos(angle) - originY * Math.sin(angle);
+    	double rotatedOriginY = originY * Math.cos(angle) + originX * Math.sin(angle);
+    	
+    	//translate from origin back to start
+    	double rotatedFinalX = rotatedOriginX + start.getX();
+    	double rotatedFinalY = rotatedOriginY + start.getY();
+    	
+    	return new Position(rotatedFinalX, rotatedFinalY);
+    }
+    
+    public static Set<AbstractObject> getAllObstructions(Toroidal2DPhysics space){
+    	Set<AbstractObject> set = space.getAllObjects();
+        Iterator<AbstractObject> iterator = set.iterator();
+        while(iterator.hasNext()) {
+        	AbstractObject obj = iterator.next();
+        	if(obj instanceof Beacon || obj instanceof Ship){
+    			iterator.remove();
+//    			System.out.println("Removed " + obj.toString());
+    		}
+        }
+    	return set;
+    }
+    
+    public static Position predictPath(Toroidal2DPhysics space, Position old, Position current, double offset){
+        double distanceToObjective = space.findShortestDistance(old, current); // find distance to object
+        double offsetX = Math.min(distanceToObjective, offset); // make offset
+        double slope = (current.getY() - old.getY()) / (current.getX() - old.getX()); // calculate slope
+        double newX = (current.getX() - old.getX() > 0 ) ? current.getX() + offsetX : current.getX() - offsetX; // create new x coordinate
+        double newY = slope*(newX - current.getX()) + current.getY(); // create new y coordinate
+        return new Position(newX, newY); // create new position        
+    }
+
+	public static Position getOldEnemyPosition() {
+		return oldEnemyPosition;
+	}
+
+	public static void setOldEnemyPosition(Position oldEnemyPosition) {
+		Mastermind.oldEnemyPosition = oldEnemyPosition;
+	}
 }
