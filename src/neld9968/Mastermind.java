@@ -9,13 +9,17 @@ import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.actions.DoNothingAction;
 import spacesettlers.actions.MoveAction;
 import spacesettlers.actions.MoveToObjectAction;
-
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
-
 import spacesettlers.actions.AbstractAction;
 import spacesettlers.utilities.Position;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.UUID;
 
 
 /**
@@ -301,5 +305,58 @@ public class Mastermind {
 
 	public static void setOldEnemyPosition(Position oldEnemyPosition) {
 		Mastermind.oldEnemyPosition = oldEnemyPosition;
+	}
+	
+	public static Position aStar(Position start, Position target, ArrayList<Position> points){
+		Set<Position> closed = new HashSet<>();
+		PriorityQueue<PositionNode> fringe = new PriorityQueue<>(10, new Comparator<PositionNode>(){
+			@Override
+			public int compare(PositionNode arg0, PositionNode arg1) {
+				if(arg0.f == arg1.f) { return 0; }
+				else { return (arg0.f > arg1.f) ? 1 : -1; }
+			}
+		});
+		
+	}
+	
+	class PositionNode{
+		Position position;
+		double f;
+		
+		public PositionNode(Position position, double f){
+			this.position = position;
+			this.f = f;
+		}
+	}
+	
+	public static Graph createGraph(ArrayList<Position> points){
+		
+	}
+	
+	class Graph {
+		
+		public List<Node> nodes;
+		
+		public Graph(List<Position> points){
+			for()
+		}
+		
+		public addEdge
+		
+		class Node {
+			public Position position;
+			public List<Edge> edges;
+		}
+		
+		class Edge {
+			public Position start;
+			public Position end;
+			
+			public Edge(Position start, Position end){
+				this.start = start;
+				this.end = end;
+			}
+		}
+		
 	}
 }

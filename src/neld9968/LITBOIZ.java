@@ -31,7 +31,6 @@ public class LITBOIZ extends TeamClient {
 	HashMap <UUID, Boolean> aimingForBase;
 	UUID asteroidCollectorID;
 	Ship ourShip;
-	Position oldEnemyPosition;
 	Position targetedPosition;
 
 	/**
@@ -197,7 +196,7 @@ public class LITBOIZ extends TeamClient {
 		else {
 	        Position enemyPos = enemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
-	        if(enemyPos.getX() == currentPosition.getX()){ //prevent infinite slope
+	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
 	            newAction = new MoveToObjectAction(space, currentPosition, enemy);
 	//            System.out.println("Move Directly To Enemy");
 	        }
@@ -212,7 +211,9 @@ public class LITBOIZ extends TeamClient {
 	        	if(Mastermind.getOldEnemyPosition() == null){
 	        		target = Mastermind.inflatePosition(space, currentPosition, enemyPos, 200);
 	        	} else {
-	        		target = Mastermind.predictPath(space, Mastermind.getOldEnemyPosition(), enemyPos, 300);
+	        		Position oldEnemyPos = Mastermind.getOldEnemyPosition();
+	        		double distanceEnemyMoved = space.findShortestDistance(oldEnemyPos, enemyPos);
+	        		target = Mastermind.predictPath(space, oldEnemyPos, enemyPos, distanceEnemyMoved);
 	        		targetedPosition = target;
 	        	}
 	        	
