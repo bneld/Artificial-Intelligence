@@ -11,6 +11,7 @@ import spacesettlers.actions.DoNothingAction;
 import spacesettlers.actions.MoveAction;
 import spacesettlers.actions.MoveToObjectAction;
 import spacesettlers.actions.AbstractAction;
+import spacesettlers.utilities.Movement;
 import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
 
@@ -23,8 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
+import java.util.Vector;
 
+import neld9968.Mastermind.Graph;
 import neld9968.Mastermind.Graph.Edge;
 import neld9968.Mastermind.Graph.Node;
 
@@ -300,6 +304,11 @@ public class Mastermind {
     
     public static Position predictPath(Toroidal2DPhysics space, Position old, Position current, double offset){
         double distanceToObjective = space.findShortestDistance(old, current); // find distance to object
+        
+        //checking for infinite slope
+        if(distanceToObjective < .001) {
+        	return current;
+        }
         double offsetX = Math.min(distanceToObjective, offset); // make offset
         double slope = (current.getY() - old.getY()) / (current.getX() - old.getX()); // calculate slope
         double newX = (current.getX() - old.getX() > 0 ) ? current.getX() + offsetX : current.getX() - offsetX; // create new x coordinate
@@ -315,13 +324,20 @@ public class Mastermind {
 		Mastermind.oldEnemyPosition = oldEnemyPosition;
 	}
 	
-	public static Position aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
+	public static Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
+		
+		Stack<Node> parents = new Stack<>();
+		Node lastVisited;
+		
 		points.add(start);
 		points.add(target);
 		Graph graph = new Graph(start, target, points, space);
+//		List<Node> nodes = graph.nodes;
 		
-		
+		//set of visited nodes
 		Set<Node> closed = new HashSet<>();
+		
+		//empty priority queue for unexplored nodes
 		PriorityQueue<Node> fringe = new PriorityQueue<>(10, new Comparator<Node>(){
 			@Override
 			public int compare(Node arg0, Node arg1) {
@@ -331,29 +347,70 @@ public class Mastermind {
 			}
 		});
 		
-		//add all children to start
+		graph.startNode.g = 0;
+		
+		//add all children of initial node to fringe
+		for(Edge e : graph.startNode.edges){
+			Node child = e.end;
+			child.g = e.weight;
+			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
+			fringe.add(child);	
+		}
+		
+		//add start to stack for saving optimal path
+		parents.add(graph.startNode);
+		lastVisited = graph.startNode;
+		
+		//start timer
+		long startTime = System.nanoTime();
 		
 		//loop
-		while(true) { //TODO add a timeout 
+		while(true) {
+			
+			//check for timeout
+			long currentTime = System.nanoTime();
+			System.out.println((currentTime - startTime) / 1000000);
+			if ((currentTime - startTime) / 1000000 > 300) { //TODO
+				return parents;
+			}
+			
+			//target was not found
 			if(fringe.isEmpty()){
 				return null;
 			}
-//			if () { //TODO
-//				
-//			}
+			
+			//find node with next best f(n)
 			Node next = fringe.peek();
-			if(next.h == 0) return next.position;
+			
+			//h(n)=0 means found target
+			if(next.h == 0) {
+				parents.add(next);
+				return parents;
+			}
+			
 			if(!closed.contains(next)){
+				//visit that node
 				closed.add(next);
+				
+				if(!lastVisited.equals(parents.peek())){
+					parents.pop();
+				}
+				
+				//add to parent stack
+				parents.push(next);
+				
+				//adding children to fringe
 				for(Edge e : next.edges){
 					Node child = e.end;
-					if(!fringe.contains(child) && !closed.contains(child)){
+					child.g = e.weight + next.g;
+					if(child.f > child.g + child.h) child.f = child.g + child.h;
 						
+					if(!fringe.contains(child) && !closed.contains(child)){
+						 fringe.add(child);	
 					}
 				}
 			}
 		}
-		
 	}
 	
 	class PositionNode{
@@ -366,11 +423,13 @@ public class Mastermind {
 		}
 	}
 	
-	class Graph {
+	static class Graph {
 		
 		public List<Node> nodes;
 		public List<Edge> edges;
 		Map<Position, Node> map;
+		Node startNode;
+		Node targetNode;
 		
 		public Graph(Position start, Position target, List<Position> points, Toroidal2DPhysics space){
 			nodes = new ArrayList<>();
@@ -379,8 +438,7 @@ public class Mastermind {
 			
 			//add all nodes
 			for(Position pos : points){
-				Node node = new Node(pos);
-				node.h = space.findShortestDistance(pos, target);
+				Node node = new Node(pos, space.findShortestDistance(pos, target));
 				nodes.add(node);
 				map.put(pos, node);
 			}
@@ -393,6 +451,8 @@ public class Mastermind {
 					}
 				}
 			}
+			startNode = map.get(start);
+			targetNode = map.get(target);
 		}
 		
 		public void addEdge(Node x, Node y, double weight){
@@ -405,12 +465,14 @@ public class Mastermind {
 		class Node {
 			public Position position;
 			public List<Edge> edges;
-			public double f;
+			public double f = Double.MAX_VALUE;
 			public double h;
+			public double g;
 			
-			public Node(Position position){
+			public Node(Position position, double h){
 				this.position = position;
 				edges = new ArrayList<>();
+				this.h= h;
 			}
 			
 			public String toString(){
@@ -472,7 +534,7 @@ public class Mastermind {
 				continue;
 			}
 		    
-			// Ignore angles > 90 degrees
+			// Ignore angles greater than arbitrary angle
 			angleBetween = Math.abs(pathToObstruction.angleBetween(pathToGoal));
 			if (angleBetween > checkAngle) {
 				continue;
@@ -488,4 +550,11 @@ public class Mastermind {
 		return pathIsClear;
 		
 	}
+	
+//	public static Position predictPathConstantAcceleration(Toroidal2DPhysics space, Ship ship, double velocity){
+//		AbstractAction action = ship.getCurrentAction();
+//		Movement mv = action.getMovement(space, ship);
+//		Vector2D accel = mv.getTranslationalAcceleration();
+//		
+//	}
 }

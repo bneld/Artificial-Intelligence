@@ -28,7 +28,6 @@ import spacesettlers.utilities.Position;
  */
 public class LITBOIZ extends TeamClient {
 	HashMap <UUID, Ship> asteroidToShipMap;
-	HashMap <UUID, Boolean> aimingForBase;
 	UUID asteroidCollectorID;
 	Ship ourShip;
 	Position targetedPosition;
@@ -106,11 +105,10 @@ public class LITBOIZ extends TeamClient {
 //		}
 		
 		// did we bounce off the base?
-		else if (ship.getResources().getTotal() == 0 && ship.getEnergy() > 2000 && aimingForBase.containsKey(ship.getId()) && aimingForBase.get(ship.getId())) {
-			current = null;
-			aimingForBase.put(ship.getId(), false);
-			newAction = getChaseAction(space, ship);
-		}
+//		else if (ship.getResources().getTotal() == 0 && ship.getEnergy() > 2000 ) {
+//			current = null;
+//			newAction = getChaseAction(space, ship);
+//		}
 
 		// otherwise aim for the nearest enemy ship
 		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)) {
@@ -166,32 +164,20 @@ public class LITBOIZ extends TeamClient {
 //				targetedPosition = inflatedBeaconPosition;
 	        }
 			
-			aimingForBase.put(ship.getId(), false);
 		}			
 		return newAction;
 	}
 	
 	public AbstractAction getChaseAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
-		aimingForBase.put(ship.getId(), false);
 		Ship enemy = Mastermind.pickNearestEnemyShip(space, ship);
 		Mastermind.setCurrentAction(Mastermind.ACTION_CHASE_ENEMY);
 
 		AbstractAction newAction = null;
 
 		if (enemy == null) {
-			// there is no enemy available so collect a beacon
-			Beacon beacon = Mastermind.pickNearestBeacon(space, ship);
-			// if there is no beacon, then just skip a turn
-			if (beacon == null) {
-				Base base = Mastermind.findNearestBase(space, ship);
-				newAction = new MoveToObjectAction(space, currentPosition, base);
-				Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
-			} else {
-				newAction = new MoveToObjectAction(space, currentPosition, beacon);
-				Mastermind.setCurrentAction(Mastermind.ACTION_FIND_BEACON);
-//				System.out.println("Move To Beacon");
-			}
+			//if no enemy, go to beacon
+			newAction = getBeaconAction(space, ship);
 		} 
 		else {
 	        Position enemyPos = enemy.getPosition();
@@ -250,7 +236,6 @@ public class LITBOIZ extends TeamClient {
 	public void initialize(Toroidal2DPhysics space) {
 		asteroidToShipMap = new HashMap<UUID, Ship>();
 		asteroidCollectorID = null;
-		aimingForBase = new HashMap<UUID, Boolean>();
 	}
 
 	@Override
