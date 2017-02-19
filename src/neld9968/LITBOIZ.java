@@ -70,7 +70,7 @@ public class LITBOIZ extends TeamClient {
 		AbstractAction newAction = null;
 
 		// aim for a beacon if there isn't enough energy
-		if (ship.getEnergy() < 600) {
+		if (ship.getEnergy() < 1000) {
 			newAction = getBeaconAction(space, ship);
 		}
 		
@@ -95,7 +95,7 @@ public class LITBOIZ extends TeamClient {
 //				if(space.findShortestDistance(ship.getPosition(), enemy.getPosition()) < 300){
 //					Random rand = new Random();
 //					Position newPos = space.getRandomFreeLocationInRegion(rand, ship.getRadius(), (int)ship.getPosition().getX(), (int)ship.getPosition().getY(), 100);
-//					newAction = new MoveAction(space, ship.getPosition(), newPos);
+//					newAction = new LITBOIZMOVEACTION(space, ship.getPosition(), newPos);
 ////					System.out.println("Evade");
 //				}
 //				else {
@@ -131,7 +131,7 @@ public class LITBOIZ extends TeamClient {
 		Beacon beacon = Mastermind.pickNearestBeacon(space, ship);
 		if(beacon == null){ //return to base
 			Base base = Mastermind.findNearestBase(space, ship);
-			newAction = new MoveToObjectAction(space, currentPosition, base);
+			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 			Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
 		}
 		else {
@@ -139,11 +139,11 @@ public class LITBOIZ extends TeamClient {
 			Position beaconPos = beacon.getPosition();
 			double distanceToBeacon = space.findShortestDistance(beaconPos, currentPosition);
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
-	            newAction = new MoveToObjectAction(space, currentPosition, beacon);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
 //				System.out.println("Move Directly To Beacon");
 	        }
 	        else if(distanceToBeacon < 50){ //slow down and directly target enemy
-	            newAction = new MoveToObjectAction(space, currentPosition, beacon);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
 	            targetedPosition = null;
 //				System.out.println("Move Directly To Beacon");
 	        }
@@ -159,7 +159,7 @@ public class LITBOIZ extends TeamClient {
 					System.out.println("Altering to (" + inflatedBeaconPosition.getX() + ", " + inflatedBeaconPosition.getY() + ")");
 				}
 				
-				newAction = new MoveAction(space, currentPosition, inflatedBeaconPosition);
+				newAction = new LITBOIZMOVEACTION(space, currentPosition, inflatedBeaconPosition);
 //				System.out.println("Move To Inflated Beacon Position");
 //				targetedPosition = inflatedBeaconPosition;
 	        }
@@ -176,18 +176,33 @@ public class LITBOIZ extends TeamClient {
 		AbstractAction newAction = null;
 
 		if (enemy == null) {
+<<<<<<< HEAD
 			//if no enemy, go to beacon
 			newAction = getBeaconAction(space, ship);
+=======
+			// there is no enemy available so collect a beacon
+			Beacon beacon = Mastermind.pickNearestBeacon(space, ship);
+			// if there is no beacon, then just skip a turn
+			if (beacon == null) {
+				Base base = Mastermind.findNearestBase(space, ship);
+				newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
+				Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
+			} else {
+				newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
+				Mastermind.setCurrentAction(Mastermind.ACTION_FIND_BEACON);
+//				System.out.println("Move To Beacon");
+			}
+>>>>>>> bce5dc7533660a32732259fc8d3f6261f582da51
 		} 
 		else {
 	        Position enemyPos = enemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-	            newAction = new MoveToObjectAction(space, currentPosition, enemy);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, enemy);
 	//            System.out.println("Move Directly To Enemy");
 	        }
 	        else if(distanceToEnemy < 100){ //slow down and directly target enemy
-	            newAction = new MoveToObjectAction(space, currentPosition, enemy);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, enemy);
 	            System.out.println("Move Directly To Enemy " + distanceToEnemy);
 	            targetedPosition = null;
 	        }
@@ -209,7 +224,7 @@ public class LITBOIZ extends TeamClient {
 					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
 	        	}
 				Mastermind.setOldEnemyPosition(enemyPos);
-	        	newAction = new MoveAction(space, currentPosition, target);	            
+	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	            
 	        }
 		}
 		return newAction;
