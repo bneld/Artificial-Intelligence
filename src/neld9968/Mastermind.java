@@ -141,26 +141,26 @@ public class Mastermind {
 //				if(beacon == null || space.findShortestDistance(currentPosition, base.getPosition()) 
 //						< space.findShortestDistance(currentPosition, beacon.getPosition())){
 //					//base is closer
-//					newAction = new MoveToObjectAction(space, currentPosition, base);
+//					newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 //					currentAction = ACTION_GO_TO_BASE;
 //					System.out.println("Go To Base");
 //					aimingForBase.put(ship.getId(), true);
 //				}
 		if(beacon == null){ //return to base
 			Base base = findNearestBase(space, ship);
-			newAction = new MoveToObjectAction(space, currentPosition, base);
+			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 			currentAction = ACTION_GO_TO_BASE;
 		}
 		else {  //locate beacon and move to it
 			Position beaconPos = beacon.getPosition();
 			double distanceToBeacon = space.findShortestDistance(beaconPos, currentPosition);
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
-	            newAction = new MoveToObjectAction(space, currentPosition, beacon);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
 //				System.out.println("Move Directly To Beacon");
 
 	        }
 	        else if(distanceToBeacon < 50){ //slow down and directly target enemy
-	            newAction = new MoveToObjectAction(space, currentPosition, beacon);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
 //				System.out.println("Move Directly To Beacon");
 	        }
 	        else { //this inflates the objective position
@@ -171,7 +171,7 @@ public class Mastermind {
 //					System.out.println("AWWWWW POOP ICEBERG AHEAD");
 //				}
 				
-				newAction = new MoveAction(space, currentPosition, inflatedBeaconPosition);
+				newAction = new LITBOIZMOVEACTION(space, currentPosition, inflatedBeaconPosition);
 //				System.out.println("Move To Inflated Beacon Position");
 
 	        }
@@ -366,7 +366,7 @@ public class Mastermind {
 		}
 	}
 	
-	class Graph {
+	public static class Graph {
 		
 		public List<Node> nodes;
 		public List<Edge> edges;
