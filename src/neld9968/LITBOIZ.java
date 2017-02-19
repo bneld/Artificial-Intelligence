@@ -153,7 +153,7 @@ public class LITBOIZ extends TeamClient {
 	        	Position inflatedBeaconPosition = Mastermind.inflatePosition(space, currentPosition, beaconPos, 200);
 				
 				//check for obstacles
-				if(!space.isPathClearOfObstructions(currentPosition, inflatedBeaconPosition, space.getAllObjects(), 30)){
+				if(!Mastermind.isPathClearOfObstructions(currentPosition, inflatedBeaconPosition, space.getAllObjects(), ship.getRadius(), space)){
 					System.out.println("AWWWWW POOP ICEBERG AHEAD");
 					Position midpoint = Mastermind.findMidpoint(currentPosition, inflatedBeaconPosition);
 					inflatedBeaconPosition = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
@@ -218,7 +218,7 @@ public class LITBOIZ extends TeamClient {
 	        	}
 	        	
 	        	//check for obstacles
-				if(!space.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space), 30)){
+				if(!Mastermind.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space), ship.getRadius(), space)){
 					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
 					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
 	        	}

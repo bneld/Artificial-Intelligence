@@ -1,6 +1,7 @@
 package neld9968;
 
 import spacesettlers.objects.AbstractObject;
+import spacesettlers.objects.Asteroid;
 //import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Base;
 import spacesettlers.objects.Beacon;
@@ -11,15 +12,21 @@ import spacesettlers.actions.MoveAction;
 import spacesettlers.actions.MoveToObjectAction;
 import spacesettlers.actions.AbstractAction;
 import spacesettlers.utilities.Position;
+import spacesettlers.utilities.Vector2D;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.UUID;
+
+import neld9968.Mastermind.Graph.Edge;
+import neld9968.Mastermind.Graph.Node;
 
 
 /**
@@ -282,7 +289,8 @@ public class Mastermind {
         Iterator<AbstractObject> iterator = set.iterator();
         while(iterator.hasNext()) {
         	AbstractObject obj = iterator.next();
-        	if(obj instanceof Beacon || obj instanceof Ship){
+        	if(obj instanceof Beacon
+        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())){
     			iterator.remove();
 //    			System.out.println("Removed " + obj.toString());
     		}
@@ -307,15 +315,44 @@ public class Mastermind {
 		Mastermind.oldEnemyPosition = oldEnemyPosition;
 	}
 	
-	public static Position aStar(Position start, Position target, ArrayList<Position> points){
-		Set<Position> closed = new HashSet<>();
-		PriorityQueue<PositionNode> fringe = new PriorityQueue<>(10, new Comparator<PositionNode>(){
+	public static Position aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
+		points.add(start);
+		points.add(target);
+		Graph graph = new Graph(start, target, points, space);
+		
+		
+		Set<Node> closed = new HashSet<>();
+		PriorityQueue<Node> fringe = new PriorityQueue<>(10, new Comparator<Node>(){
 			@Override
-			public int compare(PositionNode arg0, PositionNode arg1) {
+			public int compare(Node arg0, Node arg1) {
 				if(arg0.f == arg1.f) { return 0; }
-				else { return (arg0.f > arg1.f) ? 1 : -1; }
+				//comparator is reversed to put smallest value on top of queue
+				else { return (arg0.f < arg1.f) ? 1 : -1; }
 			}
 		});
+		
+		//add all children to start
+		
+		//loop
+		while(true) { //TODO add a timeout 
+			if(fringe.isEmpty()){
+				return null;
+			}
+//			if () { //TODO
+//				
+//			}
+			Node next = fringe.peek();
+			if(next.h == 0) return next.position;
+			if(!closed.contains(next)){
+				closed.add(next);
+				for(Edge e : next.edges){
+					Node child = e.end;
+					if(!fringe.contains(child) && !closed.contains(child)){
+						
+					}
+				}
+			}
+		}
 		
 	}
 	
@@ -329,34 +366,126 @@ public class Mastermind {
 		}
 	}
 	
-	public static Graph createGraph(ArrayList<Position> points){
-		
-	}
-	
 	class Graph {
 		
 		public List<Node> nodes;
+		public List<Edge> edges;
+		Map<Position, Node> map;
 		
-		public Graph(List<Position> points){
-			for()
+		public Graph(Position start, Position target, List<Position> points, Toroidal2DPhysics space){
+			nodes = new ArrayList<>();
+			edges = new ArrayList<>();
+			map = new HashMap<>();
+			
+			//add all nodes
+			for(Position pos : points){
+				Node node = new Node(pos);
+				node.h = space.findShortestDistance(pos, target);
+				nodes.add(node);
+				map.put(pos, node);
+			}
+			
+			//find edges
+			for(Position current : points){
+				for(Position other : points){
+					if(space.isPathClearOfObstructions(current, other, getAllObstructions(space), Ship.SHIP_RADIUS)){
+						addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
+					}
+				}
+			}
 		}
 		
-		public addEdge
+		public void addEdge(Node x, Node y, double weight){
+			Edge edgeX = new Edge(x, y, weight);
+			x.edges.add(edgeX);
+			Edge edgeY = new Edge(y, x, weight);
+			y.edges.add(edgeY);
+		}
 		
 		class Node {
 			public Position position;
 			public List<Edge> edges;
+			public double f;
+			public double h;
+			
+			public Node(Position position){
+				this.position = position;
+				edges = new ArrayList<>();
+			}
+			
+			public String toString(){
+				return "(" + position.getX() + ", " + position.getY() + ")";
+			}
 		}
 		
 		class Edge {
-			public Position start;
-			public Position end;
+			public Node start;
+			public Node end;
+			public double weight;
 			
-			public Edge(Position start, Position end){
+			public Edge(Node start, Node end, double weight){
 				this.start = start;
 				this.end = end;
+				this.weight = weight;
 			}
 		}
+		
+		public String toString(){
+			StringBuilder sb = new StringBuilder();
+			for(Node n : nodes){
+				sb.append(n.toString() + " ");
+			}
+			return sb.toString();
+		}
+	}
+	
+	/**
+	 * Check to see if following a straight line path between two given locations would result in a collision with a provided set of obstructions
+	 * Edited to narrow focus of obstruction analysis
+	 * 
+	 * @author Andrew and Thibault
+	 * 
+	 * @param  startPosition the starting location of the straight line path
+	 * @param  goalPosition the ending location of the straight line path
+	 * @param  obstructions an Set of AbstractObject obstructions (i.e., if you don't wish to consider mineable asteroids or beacons obstructions)
+	 * @param  freeRadius used to determine free space buffer size 
+	 * @param  space the simulator representation
+	 * @return Whether or not a straight line path between two positions contains obstructions from a given set
+	 */
+	public static boolean isPathClearOfObstructions(Position startPosition, Position goalPosition, Set<AbstractObject> obstructions, int freeRadius, Toroidal2DPhysics space) {
+		final double checkAngle = 0.15;
+		Vector2D pathToGoal = space.findShortestDistanceVector(startPosition,  goalPosition); 	// Shortest straight line path from startPosition to goalPosition
+		double distanceToGoal = pathToGoal.getMagnitude();										// Distance of straight line path
+
+		boolean pathIsClear = true; // Boolean showing whether or not the path is clear
+		
+		// Calculate distance between obstruction center and path (including buffer for ship movement)
+		// Uses hypotenuse * sin(theta) = opposite (on a right hand triangle)
+		Vector2D pathToObstruction; // Vector from start position to obstruction
+		double angleBetween; 		// Angle between vector from start position to obstruction
+		
+		// Loop through obstructions
+		for (AbstractObject obstruction: obstructions) {
+			// If the distance to the obstruction is greater than the distance to the end goal, ignore the obstruction
+			pathToObstruction = space.findShortestDistanceVector(startPosition, obstruction.getPosition());
+		    if (pathToObstruction.getMagnitude() > distanceToGoal) {
+				continue;
+			}
+		    
+			// Ignore angles > 90 degrees
+			angleBetween = Math.abs(pathToObstruction.angleBetween(pathToGoal));
+			if (angleBetween > checkAngle) {
+				continue;
+			}
+
+			// Compare distance between obstruction and path with buffer distance
+			if (pathToObstruction.getMagnitude() * Math.sin(angleBetween) < obstruction.getRadius() + freeRadius*1.5) {
+				pathIsClear = false;
+				break;
+			}
+		}
+		
+		return pathIsClear;
 		
 	}
 }
