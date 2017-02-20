@@ -73,19 +73,19 @@ public class LITBOIZMOVEACTION extends AbstractAction {
 		if (Double.isFinite(targetLocation.getX()) && Double.isFinite(targetLocation.getY())) {
 			this.targetLocation = targetLocation;
 		} else {
-			System.out.println("Error: you called LITBOIZMOVEACTION with a target location that is not finite. Using current instead.");
+//			System.out.println("Error: you called LITBOIZMOVEACTION with a target location that is not finite. Using current instead.");
 			this.targetLocation = currentLocation;
 		}
 		
 		if (Double.isFinite(targetVelocity.getXValue()) && Double.isFinite(targetVelocity.getYValue())) {
 			this.targetVelocity = targetVelocity;
 		} else {
-			System.out.println("Error: you called LITBOIZMOVEACTION with a target velocity that is not finite. Using zero instead.");
+//			System.out.println("Error: you called LITBOIZMOVEACTION with a target velocity that is not finite. Using zero instead.");
 			this.targetVelocity = new Vector2D();
 		}
 		this.isFinished = false;
-		KvRotational = 4.29;
-		KpRotational = 4.6;
+		KvRotational = 7.74;
+		KpRotational = 15;
 		KvTranslational = 2.88f;
 		KpTranslational = 2.08f;
 	}
@@ -104,14 +104,14 @@ public class LITBOIZMOVEACTION extends AbstractAction {
 		if (Double.isFinite(targetLocation.getX()) && Double.isFinite(targetLocation.getY())) {
 			this.targetLocation = targetLocation;
 		} else {
-			System.out.println("Error: you called LITBOIZMOVEACTION with a target location that is not finite. Using current instead.");
+//			System.out.println("Error: you called LITBOIZMOVEACTION with a target location that is not finite. Using current instead.");
 			this.targetLocation = currentLocation;
 		}
 
 		this.targetVelocity = new Vector2D();
 		this.isFinished = false;
-		KvRotational = 4.29;
-		KpRotational = 4.6;
+		KvRotational = 7.74;
+		KpRotational = 15;
 		KvTranslational = 2.88f;
 		KpTranslational = 2.08f;
 	}
@@ -124,8 +124,8 @@ public class LITBOIZMOVEACTION extends AbstractAction {
 	 */
 	public LITBOIZMOVEACTION() {
 		super();
-		KvRotational = 4.29;
-		KpRotational = 4.6;
+		KvRotational = 7.74;
+		KpRotational = 15;
 		KvTranslational = 2.88f;
 		KpTranslational = 2.08f;
 	}

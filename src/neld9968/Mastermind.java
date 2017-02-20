@@ -52,6 +52,7 @@ public class Mastermind {
 	private static double oldShipEnergy = Double.MIN_VALUE;
 	private static int fireTimer;
 	private static Position oldEnemyPosition;
+	public static Ship ship;
 	
 	/**
 	 * Gets the action for the ship
@@ -288,13 +289,14 @@ public class Mastermind {
     	return new Position(rotatedFinalX, rotatedFinalY);
     }
     
-    public static Set<AbstractObject> getAllObstructions(Toroidal2DPhysics space){
+    public static Set<AbstractObject> getAllObstructions(Toroidal2DPhysics space, Ship ship){
     	Set<AbstractObject> set = space.getAllObjects();
         Iterator<AbstractObject> iterator = set.iterator();
         while(iterator.hasNext()) {
         	AbstractObject obj = iterator.next();
         	if(obj instanceof Beacon
-        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())){
+        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())
+        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)){
     			iterator.remove();
 //    			System.out.println("Removed " + obj.toString());
     		}
@@ -354,6 +356,7 @@ public class Mastermind {
 			Node child = e.end;
 			child.g = e.weight;
 			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
+//			System.out.println("\n\n\n ADDING TO DA FRINGE \n\n\n");
 			fringe.add(child);	
 		}
 		
@@ -369,14 +372,15 @@ public class Mastermind {
 			
 			//check for timeout
 			long currentTime = System.nanoTime();
-			System.out.println((currentTime - startTime) / 1000000);
+//			System.out.println((currentTime - startTime) / 1000000);
 			if ((currentTime - startTime) / 1000000 > 300) { //TODO
 				return parents;
 			}
 			
 			//target was not found
 			if(fringe.isEmpty()){
-				return null;
+//				System.out.println("YOOOOOOOOOOOOOOOOOOOOOOOOOOO SUCK");
+				return parents;
 			}
 			
 			//find node with next best f(n)
@@ -422,15 +426,11 @@ public class Mastermind {
 			this.f = f;
 		}
 	}
-	
-<<<<<<< HEAD
-	static class Graph {
-=======
+
 	public static class Graph {
->>>>>>> bce5dc7533660a32732259fc8d3f6261f582da51
 		
-		public List<Node> nodes;
-		public List<Edge> edges;
+		public ArrayList<Node> nodes;
+		public ArrayList<Edge> edges;
 		Map<Position, Node> map;
 		Node startNode;
 		Node targetNode;
@@ -450,13 +450,20 @@ public class Mastermind {
 			//find edges
 			for(Position current : points){
 				for(Position other : points){
-					if(space.isPathClearOfObstructions(current, other, getAllObstructions(space), Ship.SHIP_RADIUS)){
-						addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
+					if(!other.equals(current)){ //don't add edge to itself
+						if(space.isPathClearOfObstructions(current, other, getAllObstructions(space, ship), Ship.SHIP_RADIUS)){
+	//						System.out.println("\n\n\n\n\n rofl \n\n\n\n");
+							addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
+						}
 					}
+					
 				}
 			}
 			startNode = map.get(start);
 			targetNode = map.get(target);
+			LITBOIZ.edges = edges;
+			LITBOIZ.nodes = nodes;
+
 		}
 		
 		public void addEdge(Node x, Node y, double weight){
@@ -464,6 +471,8 @@ public class Mastermind {
 			x.edges.add(edgeX);
 			Edge edgeY = new Edge(y, x, weight);
 			y.edges.add(edgeY);
+			edges.add(edgeX);
+			edges.add(edgeY);
 		}
 		
 		class Node {
@@ -519,7 +528,8 @@ public class Mastermind {
 	 * @return Whether or not a straight line path between two positions contains obstructions from a given set
 	 */
 	public static boolean isPathClearOfObstructions(Position startPosition, Position goalPosition, Set<AbstractObject> obstructions, int freeRadius, Toroidal2DPhysics space) {
-		final double checkAngle = 0.15;
+//		System.out.println(goalPosition.toString());
+		final double checkAngle = 0.005;
 		Vector2D pathToGoal = space.findShortestDistanceVector(startPosition,  goalPosition); 	// Shortest straight line path from startPosition to goalPosition
 		double distanceToGoal = pathToGoal.getMagnitude();										// Distance of straight line path
 
@@ -559,6 +569,45 @@ public class Mastermind {
 //		AbstractAction action = ship.getCurrentAction();
 //		Movement mv = action.getMovement(space, ship);
 //		Vector2D accel = mv.getTranslationalAcceleration();
-//		
+//		//get velocity from Position object
 //	}
+	
+	static boolean isFirst = true;
+	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end){
+		
+		//check if points are equal
+		if(start.getX() == end.getX() && start.getY() == end.getY()){
+			return null;
+		}
+		
+		ArrayList<Position> result = new ArrayList<>();
+		if(isPathClearOfObstructions(start, end, getAllObstructions(space, ship), ship.getRadius(), space)){
+			result.add(end);
+//			System.out.println("ITS CLEAR!!!!");
+		} else {
+//			System.out.println("NOT CLEAR YO");
+			
+			//testing
+			if(isFirst){
+//				System.out.println("START " + start);
+//				System.out.println("END " + end + "\n");
+				isFirst = false;
+			}
+			
+			Position toTheRight = alterPath(start, findMidpoint(start, end), 0.174533);
+			Position toTheLeft = alterPath(start, findMidpoint(start, end), -0.174533);
+//			System.out.println("MIDPOINT " + findMidpoint(start, end).toString());
+//			System.out.println("RIGHT " + toTheRight);
+//			System.out.println("LEFT " + toTheLeft);
+			result.add(toTheLeft);
+			result.add(toTheRight);
+			if(!isPathClearOfObstructions(start, toTheRight, getAllObstructions(space, ship), ship.getRadius(), space)){
+//				result.addAll(getAlternatePoints(space, ship, start, toTheRight));
+			}
+			if(!isPathClearOfObstructions(start, toTheLeft, getAllObstructions(space, ship), ship.getRadius(), space)){
+//				result.addAll(getAlternatePoints(space, ship, start, toTheLeft));
+			}
+		}
+		return result;
+	}
 }
