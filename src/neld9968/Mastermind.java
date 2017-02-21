@@ -6,33 +6,22 @@ import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Base;
 import spacesettlers.objects.Beacon;
 import spacesettlers.objects.Ship;
-import spacesettlers.objects.weapons.EMP;
-import spacesettlers.objects.weapons.Missile;
 import spacesettlers.simulator.Toroidal2DPhysics;
-import spacesettlers.actions.DoNothingAction;
-import spacesettlers.actions.MoveAction;
-import spacesettlers.actions.MoveToObjectAction;
-import spacesettlers.actions.AbstractAction;
-import spacesettlers.utilities.Movement;
 import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
+import spacesettlers.objects.weapons.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Stack;
-import java.util.UUID;
-import java.util.Vector;
 
-import neld9968.Mastermind.Graph;
-import neld9968.Mastermind.Graph.Edge;
-import neld9968.Mastermind.Graph.Node;
+import neld9968.LitGraph;
+import neld9968.LitGraph.Edge;
+import neld9968.LitGraph.Node;
 
 
 /**
@@ -55,6 +44,12 @@ public class Mastermind {
 	private static int fireTimer;
 	private static Position oldEnemyPosition;
 	public static Ship ship;
+	public static int TIMEOUT = 0;
+	public static Stack<Node> stack;
+	public static Position aStarCurrentPosition;
+	public static final double DEGREES_15 = 0.261799;
+	public static int aStarEnemyCounter = 0;
+	public static int aStarBeaconCounter = 0;
 	
 	/**
 	 * Gets the action for the ship
@@ -264,8 +259,12 @@ public class Mastermind {
 		Node lastVisited;
 		
 		points.add(start);
-		points.add(target);
-		Graph graph = new Graph(start, target, points, space);
+		if(!points.contains(target)) {
+			System.out.println("i hate my life");
+			points.add(target);
+		}
+
+		LitGraph graph = new LitGraph(start, target, points, space);
 //		List<Node> nodes = graph.nodes;
 		
 		//set of visited nodes
@@ -288,7 +287,7 @@ public class Mastermind {
 			Node child = e.end;
 			child.g = e.weight;
 			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
-//			System.out.println("\n\n\n ADDING TO DA FRINGE \n\n\n");
+//			System.out.println("\n\n\n ADDING TO DA FRINGE IN ASTAR \n\n\n");
 			fringe.add(child);	
 		}
 		
@@ -301,18 +300,20 @@ public class Mastermind {
 		
 		//loop
 		while(true) {
+			//increment timeout
+			TIMEOUT++;
 			
 			//check for timeout
-			long currentTime = System.nanoTime();
-//			System.out.println((currentTime - startTime) / 1000000);
-			if ((currentTime - startTime) / 1000000 > 300) { //TODO
-				return parents;
+			if (TIMEOUT > 1000) { //TODO
+				System.out.println("TIMEOUT > 1000");
+				TIMEOUT = 0;
+				return checkStartNode(reverseStack(parents), start);
 			}
 			
 			//target was not found
 			if(fringe.isEmpty()){
-//				System.out.println("YOOOOOOOOOOOOOOOOOOOOOOOOOOO SUCK");
-				return parents;
+				System.out.println("FRINGE IS EMPTY");
+				return checkStartNode(reverseStack(parents), start);
 			}
 			
 			//find node with next best f(n)
@@ -321,7 +322,8 @@ public class Mastermind {
 			//h(n)=0 means found target
 			if(next.h == 0) {
 				parents.add(next);
-				return parents;
+				System.out.println("FOUND TARGET");
+				return checkStartNode(reverseStack(parents), start);
 			}
 			
 			if(!closed.contains(next)){
@@ -342,6 +344,7 @@ public class Mastermind {
 					if(child.f > child.g + child.h) child.f = child.g + child.h;
 						
 					if(!fringe.contains(child) && !closed.contains(child)){
+//						System.out.println("adding child to the fringe");
 						 fringe.add(child);	
 					}
 				}
@@ -349,101 +352,12 @@ public class Mastermind {
 		}
 	}
 	
-	class PositionNode{
-		Position position;
-		double f;
-		
-		public PositionNode(Position position, double f){
-			this.position = position;
-			this.f = f;
+	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
+		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
+			stack.pop();
+			System.out.println("gotta remove this here top node");
 		}
-	}
-
-	public static class Graph {
-		
-		public ArrayList<Node> nodes;
-		public ArrayList<Edge> edges;
-		Map<Position, Node> map;
-		Node startNode;
-		Node targetNode;
-		
-		public Graph(Position start, Position target, List<Position> points, Toroidal2DPhysics space){
-			nodes = new ArrayList<>();
-			edges = new ArrayList<>();
-			map = new HashMap<>();
-			
-			//add all nodes
-			for(Position pos : points){
-				Node node = new Node(pos, space.findShortestDistance(pos, target));
-				nodes.add(node);
-				map.put(pos, node);
-			}
-			
-			//find edges
-			for(Position current : points){
-				for(Position other : points){
-					if(!other.equals(current)){ //don't add edge to itself
-						if(space.isPathClearOfObstructions(current, other, getAllObstructions(space, ship), Ship.SHIP_RADIUS)){
-	//						System.out.println("\n\n\n\n\n rofl \n\n\n\n");
-							addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
-						}
-					}
-					
-				}
-			}
-			startNode = map.get(start);
-			targetNode = map.get(target);
-			LITBOIZ.edges = edges;
-			LITBOIZ.nodes = nodes;
-
-		}
-		
-		public void addEdge(Node x, Node y, double weight){
-			Edge edgeX = new Edge(x, y, weight);
-			x.edges.add(edgeX);
-			Edge edgeY = new Edge(y, x, weight);
-			y.edges.add(edgeY);
-			edges.add(edgeX);
-			edges.add(edgeY);
-		}
-		
-		class Node {
-			public Position position;
-			public List<Edge> edges;
-			public double f = Double.MAX_VALUE;
-			public double h;
-			public double g;
-			
-			public Node(Position position, double h){
-				this.position = position;
-				edges = new ArrayList<>();
-				this.h= h;
-			}
-			
-			public String toString(){
-				return "(" + position.getX() + ", " + position.getY() + ")";
-			}
-		}
-		
-		class Edge {
-			public Node start;
-			public Node end;
-			public double weight;
-			
-			public Edge(Node start, Node end, double weight){
-				this.start = start;
-				this.end = end;
-				this.weight = weight;
-			}
-		}
-		
-		public String toString(){
-			StringBuilder sb = new StringBuilder();
-			for(Node n : nodes){
-				sb.append(n.toString() + " ");
-			}
-			return sb.toString();
-		}
+		return stack;
 	}
 	
 	/**
@@ -504,10 +418,15 @@ public class Mastermind {
 //		//get velocity from Position object
 //	}
 	
-	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end){
+	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end, int counter){
 		
 		//check if points are equal
 		if(start.getX() == end.getX() && start.getY() == end.getY()){
+			System.out.println("hey its null u suk \n\n");
+			return null;
+		} 
+		//recursion is limited to 5 times
+		if (counter > 4) { 
 			return null;
 		}
 		
@@ -518,20 +437,26 @@ public class Mastermind {
 		} else {
 //			System.out.println("NOT CLEAR YO");
 			
-			Position toTheRight = alterPath(start, findMidpoint(start, end), 0.174533);
-			Position toTheLeft = alterPath(start, findMidpoint(start, end), -0.174533);
-//			System.out.println("MIDPOINT " + findMidpoint(start, end).toString());
-//			System.out.println("RIGHT " + toTheRight);
-//			System.out.println("LEFT " + toTheLeft);
+			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_15);
+			Position toTheLeft = alterPath(start, findMidpoint(start, end), DEGREES_15);
 			result.add(toTheLeft);
 			result.add(toTheRight);
 			if(!isPathClearOfObstructions(start, toTheRight, getAllObstructions(space, ship), ship.getRadius(), space)){
-				result.addAll(getAlternatePoints(space, ship, start, toTheRight));
+				result.addAll(getAlternatePoints(space, ship, start, toTheRight, ++counter));
 			}
 			if(!isPathClearOfObstructions(start, toTheLeft, getAllObstructions(space, ship), ship.getRadius(), space)){
-				result.addAll(getAlternatePoints(space, ship, start, toTheLeft));
+				result.addAll(getAlternatePoints(space, ship, start, toTheLeft, ++counter));
 			}
 		}
 		return result;
+	}
+	
+	public static Stack<Node> reverseStack(Stack<Node> stack){
+		
+		Stack<Node> reversedStack = new Stack<>();
+		while(!stack.isEmpty()){
+			reversedStack.push(stack.pop());
+		}
+		return reversedStack;
 	}
 }
