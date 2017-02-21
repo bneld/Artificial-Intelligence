@@ -113,7 +113,7 @@ public class LITBOIZ extends TeamClient {
 //					newAction = new LITBOIZMOVEACTION(space, ship.getPosition(), newPos);
 ////					System.out.println("Evade");
 //				}
-//				else {
+//				else { 
 //					newAction = getChaseAction(space, ship);
 //				}
 //			}
@@ -198,8 +198,7 @@ public class LITBOIZ extends TeamClient {
 //	            System.out.println("Move Directly To Enemy " + distanceToEnemy);
 	            targetedPosition = null;
 	        }
-	        else{ //target past enemy to increase velocity
-	        	//TODO inflation doesn't handle screen wrap-around
+	        else{ 
 	        	Position target;
 	        	if(Mastermind.getOldEnemyPosition() == null){
 	        		//no previous enemy position to use
@@ -212,14 +211,19 @@ public class LITBOIZ extends TeamClient {
 	        	}
 	        	
 //	        	//check for obstacles
-				if(!Mastermind.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
-					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
-					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
-	        	}
-//	        	testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, target);
-//	        	Stack<Node> path = Mastermind.aStar(currentPosition, target, testPositions, space);
-//	        	target = path.peek().position;
-//	        	targetedPosition = target;
+//				if(!Mastermind.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
+//					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
+//					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
+//	        	}
+	        	
+	        	//Use a* to find clear path to target
+	        	testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, target);
+	        	Stack<Node> path = Mastermind.aStar(currentPosition, target, testPositions, space);
+	        	//use top of stack 
+	        	target = path.peek().position;
+	        	
+	        	//graphics
+	        	targetedPosition = target;
 				
 				//Store enemy position
 				Mastermind.setOldEnemyPosition(enemyPos);

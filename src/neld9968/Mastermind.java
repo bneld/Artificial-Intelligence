@@ -6,6 +6,8 @@ import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Base;
 import spacesettlers.objects.Beacon;
 import spacesettlers.objects.Ship;
+import spacesettlers.objects.weapons.EMP;
+import spacesettlers.objects.weapons.Missile;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.actions.DoNothingAction;
 import spacesettlers.actions.MoveAction;
@@ -133,60 +135,6 @@ public class Mastermind {
 	}
 	
 	/**
-	 * Gets the beacon action
-	 * @param space
-	 * @param ship
-	 * @return
-	 */
-	public static AbstractAction getBeaconAction(Toroidal2DPhysics space, Ship ship){
-		AbstractAction newAction = null;
-		Position currentPosition = ship.getPosition();
-		Beacon beacon = pickNearestBeacon(space, ship);
-//		Base base = findNearestBase(space, ship);
-//				if(beacon == null || space.findShortestDistance(currentPosition, base.getPosition()) 
-//						< space.findShortestDistance(currentPosition, beacon.getPosition())){
-//					//base is closer
-//					newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
-//					currentAction = ACTION_GO_TO_BASE;
-//					System.out.println("Go To Base");
-//					aimingForBase.put(ship.getId(), true);
-//				}
-		if(beacon == null){ //return to base
-			Base base = findNearestBase(space, ship);
-			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
-			currentAction = ACTION_GO_TO_BASE;
-		}
-		else {  //locate beacon and move to it
-			Position beaconPos = beacon.getPosition();
-			double distanceToBeacon = space.findShortestDistance(beaconPos, currentPosition);
-	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
-//				System.out.println("Move Directly To Beacon");
-
-	        }
-	        else if(distanceToBeacon < 50){ //slow down and directly target enemy
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
-//				System.out.println("Move Directly To Beacon");
-	        }
-	        else { //this inflates the objective position
-	        	Position inflatedBeaconPosition = inflatePosition(space, currentPosition, beaconPos, 200);
-				
-				//check for obstacles
-//				if(!space.isPathClearOfObstructions(currentPosition, inflatedBeaconPosition, space.getAllObjects(), 30)){
-//					System.out.println("AWWWWW POOP ICEBERG AHEAD");
-//				}
-				
-				newAction = new LITBOIZMOVEACTION(space, currentPosition, inflatedBeaconPosition);
-//				System.out.println("Move To Inflated Beacon Position");
-
-	        }
-			currentAction = ACTION_FIND_BEACON;
-//			aimingForBase.put(ship.getId(), false);
-		}			
-		return newAction;
-	}
-	
-	/**
 	 * Find the base for this team nearest to this ship
 	 * 
 	 * @param space
@@ -240,24 +188,6 @@ public class Mastermind {
 		
 		return nearestShip;
 	}
-	
-	/**
-	 * Targets past objective to move quicker
-	 * @param space
-	 * @param start
-	 * @param objective
-	 * @param offset
-	 * @return
-	 */
-    public static Position inflatePosition(Toroidal2DPhysics space, Position start, Position objective, double offset){
-        double distanceToObjective = space.findShortestDistance(start, objective); // find distance to object
-        double offsetX = Math.min(distanceToObjective, offset); // make offset
-        double slope = (objective.getY() - start.getY()) / (objective.getX() - start.getX()); // calculate slope
-        double newX = (objective.getX() - start.getX() > 0 ) ? objective.getX() + offsetX : objective.getX() - offsetX; // create new x coordinate
-        double newY = slope*(newX - objective.getX()) + objective.getY(); // create new y coordinate
-        Position inflatedPosition = new Position(newX, newY); // create new position
-        return inflatedPosition;
-    }
     
     public static Position findMidpoint(Position start, Position objective){
     	double x = (objective.getX() + start.getX()) / 2.0;
@@ -296,7 +226,9 @@ public class Mastermind {
         	AbstractObject obj = iterator.next();
         	if(obj instanceof Beacon
         		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())
-        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)){
+        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)
+        		|| (obj instanceof Missile)
+        		|| (obj instanceof EMP)){
     			iterator.remove();
 //    			System.out.println("Removed " + obj.toString());
     		}
@@ -572,7 +504,6 @@ public class Mastermind {
 //		//get velocity from Position object
 //	}
 	
-	static boolean isFirst = true;
 	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end){
 		
 		//check if points are equal
@@ -587,13 +518,6 @@ public class Mastermind {
 		} else {
 //			System.out.println("NOT CLEAR YO");
 			
-			//testing
-			if(isFirst){
-//				System.out.println("START " + start);
-//				System.out.println("END " + end + "\n");
-				isFirst = false;
-			}
-			
 			Position toTheRight = alterPath(start, findMidpoint(start, end), 0.174533);
 			Position toTheLeft = alterPath(start, findMidpoint(start, end), -0.174533);
 //			System.out.println("MIDPOINT " + findMidpoint(start, end).toString());
@@ -602,10 +526,10 @@ public class Mastermind {
 			result.add(toTheLeft);
 			result.add(toTheRight);
 			if(!isPathClearOfObstructions(start, toTheRight, getAllObstructions(space, ship), ship.getRadius(), space)){
-//				result.addAll(getAlternatePoints(space, ship, start, toTheRight));
+				result.addAll(getAlternatePoints(space, ship, start, toTheRight));
 			}
 			if(!isPathClearOfObstructions(start, toTheLeft, getAllObstructions(space, ship), ship.getRadius(), space)){
-//				result.addAll(getAlternatePoints(space, ship, start, toTheLeft));
+				result.addAll(getAlternatePoints(space, ship, start, toTheLeft));
 			}
 		}
 		return result;
