@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -15,6 +16,8 @@ import spacesettlers.actions.*;
 import spacesettlers.objects.*;
 import spacesettlers.objects.powerups.*;
 import spacesettlers.objects.resources.*;
+import spacesettlers.objects.weapons.EMP;
+import spacesettlers.objects.weapons.Missile;
 import spacesettlers.clients.TeamClient;
 import spacesettlers.graphics.CircleGraphics;
 import spacesettlers.graphics.LineGraphics;
@@ -33,11 +36,16 @@ public class LITBOIZ extends TeamClient {
 	HashMap <UUID, Ship> asteroidToShipMap;
 	UUID asteroidCollectorID;
 	Ship ourShip;
+	Ship currentEnemy;
+	Ship oldEnemy;
+	Beacon currentBeacon;
+	Beacon oldBeacon;
 	Position targetedPosition;
 	ArrayList<Position> testPositions = new ArrayList<>();
 	public static ArrayList<Edge> edges = new ArrayList<>();
 	public static ArrayList<Node> nodes = new ArrayList<>();
 	Toroidal2DPhysics space;
+	public static Set<AbstractObject> testSet;
 
 	/**
 	 * Assigns ships to be attack or resource ships (currently only 1 attack ship)
@@ -76,6 +84,9 @@ public class LITBOIZ extends TeamClient {
 		AbstractAction current = ship.getCurrentAction();
 		Mastermind.incFireTimer();
 		AbstractAction newAction = null;
+		
+		//TODO
+//		Mastermind.getAllObstructions(space, ship);
 
 		//if ship is dead set a new action
 		if(!ourShip.isAlive()){
@@ -137,46 +148,52 @@ public class LITBOIZ extends TeamClient {
 	public AbstractAction getBeaconAction(Toroidal2DPhysics space, Ship ship){
 		AbstractAction newAction = null;
 		Position currentPosition = ship.getPosition();
-		Beacon beacon = Mastermind.pickNearestBeacon(space, ship);
-		if(beacon == null){ //return to base
+		currentBeacon = Mastermind.pickNearestBeacon(space, ship);
+		if(currentBeacon == null){ //return to base
 			Base base = Mastermind.findNearestBase(space, ship);
 			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 			Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
 		}
 		else {
 			Mastermind.setCurrentAction(Mastermind.ACTION_FIND_BEACON);
-			Position beaconPos = beacon.getPosition();
+			Position beaconPos = currentBeacon.getPosition();
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentBeacon);
 	        } else { //directly target beacon
-	        	Position target = getAStarPosition(ship, currentPosition, beaconPos, Mastermind.aStarBeaconCounter);	        	
+	        	
+	        	//will recalculate A* if switching enemy ships
+	        	boolean shouldForceRecalc = (oldBeacon == null) ? false : !currentBeacon.getId().equals(oldBeacon.getId());
+	        	
+	        	Position target = getAStarPosition(ship, currentPosition, beaconPos, Mastermind.aStarBeaconCounter, shouldForceRecalc);	        	
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 	            targetedPosition = null;
 	        }
-		}			
+		}	
+		oldBeacon = currentBeacon;
+		
 		return newAction;
 	}
 	
 	public AbstractAction getChaseAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
-		Ship enemy = Mastermind.pickNearestEnemyShip(space, ship);
+		currentEnemy = Mastermind.pickNearestEnemyShip(space, ship);
 		Mastermind.setCurrentAction(Mastermind.ACTION_CHASE_ENEMY);
 
 		AbstractAction newAction = null;
 
-		if (enemy == null) {
+		if (currentEnemy == null) {
 			//if no enemy, go to beacon
 			newAction = getBeaconAction(space, ship);	
 		} 
 		else {
-	        Position enemyPos = enemy.getPosition();
+	        Position enemyPos = currentEnemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, enemy);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	//            System.out.println("Move Directly To Enemy");
 	        }
 	        else if(distanceToEnemy < 100){ //slow down and directly target enemy
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, enemy);
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 //	            System.out.println("Move Directly To Enemy " + distanceToEnemy);
 	            targetedPosition = null;
 	        }
@@ -194,7 +211,11 @@ public class LITBOIZ extends TeamClient {
 //	        		initialTarget = Mastermind.predictPath(space, oldEnemyPos, enemyPos, distanceEnemyMoved);
 //	        		targetedPosition = initialTarget;
 //	        	}
-	        	Position target = getAStarPosition(ship, currentPosition, enemyPos, Mastermind.aStarEnemyCounter);
+	        	
+	        	//will recalculate A* if switching enemy ships
+	        	boolean shouldForceRecalc = (oldEnemy == null) ? false : !currentEnemy.getId().equals(oldEnemy.getId());
+	        	
+	        	Position target = getAStarPosition(ship, currentPosition, enemyPos, Mastermind.aStarEnemyCounter, shouldForceRecalc);
 				
 				//Store enemy position
 				Mastermind.setOldEnemyPosition(enemyPos);
@@ -214,13 +235,15 @@ public class LITBOIZ extends TeamClient {
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 	        }
 		}
+		oldEnemy = currentEnemy; //record the enemy ship
 		return newAction;
 	}
 	
-	public Position getAStarPosition(Ship ship, Position currentPosition, Position initialTarget, int counter){
+	public Position getAStarPosition(Ship ship, Position currentPosition, Position initialTarget, int counter, boolean shouldForceRecalc){
 		Position target;
+		
 		//will calculate A* when counter is 10 or stack is empty
-		if(++counter == 10 || Mastermind.stack.isEmpty()){
+		if(++counter == 10 || Mastermind.stack.isEmpty() || shouldForceRecalc){
 			testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
 			Mastermind.stack =  Mastermind.aStar(currentPosition, initialTarget, testPositions, space);
 			
@@ -282,6 +305,16 @@ public class LITBOIZ extends TeamClient {
 		for(Node n : nodes){
 			set.add(new CircleGraphics(10, Color.BLUE, n.position));
 		}
+		
+		//TESTING 
+		Iterator<AbstractObject> iterator = testSet.iterator();
+        while(iterator.hasNext()) {
+        	AbstractObject obj = iterator.next();
+        	set.add(new CircleGraphics(10, Color.GREEN, obj.getPosition()));
+        }
+        testSet.clear();
+		//TESTING
+		
 		return set;
 	}
 
@@ -370,6 +403,7 @@ public class LITBOIZ extends TeamClient {
 
 		for (AbstractActionableObject actionableObject : actionableObjects){
 			Ship enemy = Mastermind.pickNearestEnemyShip(space, ourShip);
+			
 			if(!enemy.isAlive()) { //enemy is dead so stop shooting
 				return powerUps;
 			}
@@ -377,7 +411,11 @@ public class LITBOIZ extends TeamClient {
 
 			double distanceToEnemy = space.findShortestDistance(enemy.getPosition(), ourShip.getPosition());
 			if(actionableObject.isValidPowerup(powerup) && Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)){
-			    if (Math.abs(enemy.getPosition().getxVelocity() - ourShip.getPosition().getxVelocity() ) < 10 && Math.abs(enemy.getPosition().getyVelocity() - ourShip.getPosition().getyVelocity()) < 10) {
+			    
+				//situation where our ship and enemy are moving at same speed
+				double xVelocityDiff = Math.abs(enemy.getPosition().getxVelocity() - ourShip.getPosition().getxVelocity());
+				double yVelocityDiff = Math.abs(enemy.getPosition().getyVelocity() - ourShip.getPosition().getyVelocity());
+				if ( xVelocityDiff <= 10 && yVelocityDiff <= 10) {
 //			        System.out.println("help im stuck im following now i cant stop pls");
 			        if(Mastermind.getFireTimer() == 5){
 	//			        System.out.println("bang bang!!!! (new one)");

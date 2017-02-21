@@ -216,6 +216,10 @@ public class Mastermind {
     
     public static Set<AbstractObject> getAllObstructions(Toroidal2DPhysics space, Ship ship){
     	Set<AbstractObject> set = space.getAllObjects();
+    	Set<Base> baseSet = space.getBases();
+    	Set<Asteroid> asteroidSet = space.getAsteroids();
+    	set.addAll(baseSet);
+        set.addAll(asteroidSet);
         Iterator<AbstractObject> iterator = set.iterator();
         while(iterator.hasNext()) {
         	AbstractObject obj = iterator.next();
@@ -225,9 +229,10 @@ public class Mastermind {
         		|| (obj instanceof Missile)
         		|| (obj instanceof EMP)){
     			iterator.remove();
-//    			System.out.println("Removed " + obj.toString());
     		}
         }
+        
+        LITBOIZ.testSet = space.getAllObjects();
     	return set;
     }
     
@@ -260,7 +265,6 @@ public class Mastermind {
 		
 		points.add(start);
 		if(!points.contains(target)) {
-			System.out.println("i hate my life");
 			points.add(target);
 		}
 
@@ -294,10 +298,7 @@ public class Mastermind {
 		//add start to stack for saving optimal path
 		parents.add(graph.startNode);
 		lastVisited = graph.startNode;
-		
-		//start timer
-		long startTime = System.nanoTime();
-		
+
 		//loop
 		while(true) {
 			//increment timeout
@@ -305,14 +306,14 @@ public class Mastermind {
 			
 			//check for timeout
 			if (TIMEOUT > 1000) { //TODO
-				System.out.println("TIMEOUT > 1000");
+//				System.out.println("TIMEOUT > 1000");
 				TIMEOUT = 0;
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
 			//target was not found
 			if(fringe.isEmpty()){
-				System.out.println("FRINGE IS EMPTY");
+//				System.out.println("FRINGE IS EMPTY");
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
@@ -322,7 +323,7 @@ public class Mastermind {
 			//h(n)=0 means found target
 			if(next.h == 0) {
 				parents.add(next);
-				System.out.println("FOUND TARGET");
+//				System.out.println("FOUND TARGET");
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
@@ -355,7 +356,6 @@ public class Mastermind {
 	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
 		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
 			stack.pop();
-			System.out.println("gotta remove this here top node");
 		}
 		return stack;
 	}
