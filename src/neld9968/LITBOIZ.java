@@ -40,6 +40,7 @@ public class LITBOIZ extends TeamClient {
 	public static ArrayList<Edge> edges = new ArrayList<>();
 	public static ArrayList<Node> nodes = new ArrayList<>();
 	Toroidal2DPhysics space;
+	public static int ASTARCOUNTER = 0;
 
 
 	/**
@@ -212,14 +213,19 @@ public class LITBOIZ extends TeamClient {
 	        	}
 	        	
 //	        	//check for obstacles
-				if(!Mastermind.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
-					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
-					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
+//				if(!Mastermind.isPathClearOfObstructions(currentPosition, target, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
+//					Position midpoint = Mastermind.findMidpoint(currentPosition, enemyPos);
+//					target = Mastermind.alterPath(currentPosition, midpoint, 0.349066);
+//	        	}
+	        	testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, target);
+	        	ASTARCOUNTER++;
+	        	if(ASTARCOUNTER == 10){
+	        		Stack<Node> path = Mastermind.aStar(currentPosition, target, testPositions, space);
+	        		target = path.peek().position;
+	        		targetedPosition = target;
+	        		ASTARCOUNTER = 0;
 	        	}
-//	        	testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, target);
-//	        	Stack<Node> path = Mastermind.aStar(currentPosition, target, testPositions, space);
-//	        	target = path.peek().position;
-//	        	targetedPosition = target;
+
 				
 				//Store enemy position
 				Mastermind.setOldEnemyPosition(enemyPos);
@@ -277,9 +283,9 @@ public class LITBOIZ extends TeamClient {
 		if(targetedPosition == null) return null;
 		Set<SpacewarGraphics> set = new HashSet<>();
 		set.add(new CircleGraphics(20, Color.RED, targetedPosition));
-//		for(Position p : testPositions){
-//			set.add(new CircleGraphics(10, Color.GREEN, p));
-//		}
+		for(Position p : testPositions){
+			set.add(new CircleGraphics(10, Color.GREEN, p));
+		}
 //		set.add(new LineGraphics(new Position(50, 50), new Position(50, 150), space.findShortestDistanceVector(new Position(50, 50), new Position(50, 150))));
 		for(Edge e : edges){
 //			System.out.println("Edge!");

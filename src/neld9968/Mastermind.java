@@ -14,6 +14,7 @@ import spacesettlers.actions.AbstractAction;
 import spacesettlers.utilities.Movement;
 import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
+import spacesettlers.objects.weapons.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,6 +54,7 @@ public class Mastermind {
 	private static int fireTimer;
 	private static Position oldEnemyPosition;
 	public static Ship ship;
+	public static int TIMEOUT = 0;
 	
 	/**
 	 * Gets the action for the ship
@@ -296,7 +298,9 @@ public class Mastermind {
         	AbstractObject obj = iterator.next();
         	if(obj instanceof Beacon
         		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())
-        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)){
+        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)
+        		|| (obj instanceof Missile)
+        		|| (obj instanceof EMP)){
     			iterator.remove();
 //    			System.out.println("Removed " + obj.toString());
     		}
@@ -356,7 +360,7 @@ public class Mastermind {
 			Node child = e.end;
 			child.g = e.weight;
 			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
-//			System.out.println("\n\n\n ADDING TO DA FRINGE \n\n\n");
+			System.out.println("\n\n\n ADDING TO DA FRINGE IN ASTAR \n\n\n");
 			fringe.add(child);	
 		}
 		
@@ -369,11 +373,22 @@ public class Mastermind {
 		
 		//loop
 		while(true) {
+			//increment timeout
+			TIMEOUT++;
 			
 			//check for timeout
-			long currentTime = System.nanoTime();
-//			System.out.println((currentTime - startTime) / 1000000);
-			if ((currentTime - startTime) / 1000000 > 300) { //TODO
+			if(TIMEOUT < 100) {
+				System.out.println(TIMEOUT);
+			}
+			else if(TIMEOUT < 500) {
+				System.out.println(TIMEOUT);
+			}
+			else if(TIMEOUT < 800) {
+				System.out.println(TIMEOUT);
+			}
+			else if (TIMEOUT > 1000) { //TODO
+				System.out.println("TRIGGERED");
+				TIMEOUT = 0;
 				return parents;
 			}
 			
@@ -410,6 +425,7 @@ public class Mastermind {
 					if(child.f > child.g + child.h) child.f = child.g + child.h;
 						
 					if(!fringe.contains(child) && !closed.contains(child)){
+						System.out.println("adding child to the fringe");
 						 fringe.add(child);	
 					}
 				}
