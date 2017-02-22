@@ -51,6 +51,9 @@ public class LITBOIZ extends TeamClient {
 
 	/**
 	 * Assigns ships to be attack or resource ships (currently only 1 attack ship)
+	 * @param space
+	 * @param actionableObjects
+	 * return actions for the ship
 	 */
 	public Map<UUID, AbstractAction> getMovementStart(Toroidal2DPhysics space,
 			Set<AbstractActionableObject> actionableObjects) {
@@ -63,7 +66,7 @@ public class LITBOIZ extends TeamClient {
 				ourShip = ship;
 				if(Mastermind.ship == null) Mastermind.ship = ship;
 				
-				
+				//add actions
 				AbstractAction action = getWeaponShipAction(space, ship);
 				actions.put(ship.getId(), action);
 				
@@ -79,7 +82,7 @@ public class LITBOIZ extends TeamClient {
 	 * Gets the action for the weapons based ship
 	 * @param space the current space environment
 	 * @param ship our spacecraft that the simulator passes in
-	 * @return
+	 * @return newAction 
 	 */
 	private AbstractAction getWeaponShipAction(Toroidal2DPhysics space,
 			Ship ship) {
@@ -153,9 +156,16 @@ public class LITBOIZ extends TeamClient {
 		return newAction;
 	}
 	
+	/**
+	 * Gets the action that will deal with the beacon 
+	 * @param space the current space environment
+	 * @param ship our spacecraft that the simulator passes in
+	 * @return newAction 
+	 */
 	public AbstractAction getBeaconAction(Toroidal2DPhysics space, Ship ship){
 		AbstractAction newAction = null;
 		Position currentPosition = ship.getPosition();
+		//find nearest beacon
 		currentBeacon = Mastermind.pickNearestBeacon(space, ship);
 		Mastermind.currentTarget = currentBeacon;
 
@@ -164,7 +174,8 @@ public class LITBOIZ extends TeamClient {
 			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 			Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
 		}
-		else {
+		else { 
+			// find beacon 
 			Mastermind.setCurrentAction(Mastermind.ACTION_FIND_BEACON);
 			Position beaconPos = currentBeacon.getPosition();
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
@@ -175,11 +186,17 @@ public class LITBOIZ extends TeamClient {
 //	            targetedPosition = null;
 	        }
 		}	
-		oldBeacon = currentBeacon;
 		
+		oldBeacon = currentBeacon;
 		return newAction;
 	}
 	
+	/**
+	 * Gets the action that will deal with the beacon 
+	 * @param space the current space environment
+	 * @param ship our spacecraft that the simulator passes in
+	 * @return newAction 
+	 */
 	public AbstractAction getChaseAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentEnemy = Mastermind.pickNearestEnemyShip(space, ship);
@@ -197,11 +214,9 @@ public class LITBOIZ extends TeamClient {
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
-	//            System.out.println("Move Directly To Enemy");
 	        }
 	        else if(distanceToEnemy < 100){ //slow down and directly target enemy
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
-//	            System.out.println("Move Directly To Enemy " + distanceToEnemy);
 	            targetedPosition = null;
 	        }
 	        else{ 
@@ -227,12 +242,6 @@ public class LITBOIZ extends TeamClient {
 				//Store enemy position
 				Mastermind.setOldEnemyPosition(enemyPos);
 				
-				
-//				System.out.println("ENEMY POSITION " + enemyPos);
-//				System.out.println("TARGET " + target);
-//				System.out.println("CURRENT " + currentPosition);
-//				System.out.println("ASTARCURRENTPOSITION " + Mastermind.aStarCurrentPosition);
-				
 //				if(Mastermind.stack.peek().position.getX() == currentPosition.getX() && Mastermind.stack.peek().position.getY() == currentPosition.getY()){
 //					Mastermind.stack.pop();
 //					target = Mastermind.stack.peek().position;
@@ -247,6 +256,15 @@ public class LITBOIZ extends TeamClient {
 		return newAction;
 	}
 	
+	/**
+	 * Gets the action that will deal with the beacon 
+	 * @param space the current space environment
+	 * @param ship our spacecraft that the simulator passes in
+	 * @param currentPosition of ship
+	 * @param initialTarget 
+	 * @param counter that triggers astar
+	 * @return newAction 
+	 */
 	public Position getAStarPosition(Toroidal2DPhysics space, Ship ship, Position currentPosition, Position initialTarget, int counter){
 		Position target;
 		
@@ -284,7 +302,6 @@ public class LITBOIZ extends TeamClient {
 
 	@Override
 	public void getMovementEnd(Toroidal2DPhysics space, Set<AbstractActionableObject> actionableObjects) {
-//		System.out.println("DA MOVEMENT ENDED");
 	}
 
 	@Override
@@ -416,9 +433,7 @@ public class LITBOIZ extends TeamClient {
 				double xVelocityDiff = Math.abs(enemy.getPosition().getxVelocity() - ourShip.getPosition().getxVelocity());
 				double yVelocityDiff = Math.abs(enemy.getPosition().getyVelocity() - ourShip.getPosition().getyVelocity());
 				if ( xVelocityDiff <= 10 && yVelocityDiff <= 10) {
-//			        System.out.println("help im stuck im following now i cant stop pls");
 			        if(Mastermind.getFireTimer() == 5){
-	//			        System.out.println("bang bang!!!! (new one)");
 				        powerUps.put(actionableObject.getId(), powerup);
 				        Mastermind.clearFireTimer(); //reset fire rate counter)	
 			        }
