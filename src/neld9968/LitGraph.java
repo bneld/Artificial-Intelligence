@@ -33,7 +33,7 @@ public class LitGraph {
 		for(Position current : points){
 			for(Position other : points){
 				if(!other.equals(current)){ //don't add edge to itself
-					if(space.isPathClearOfObstructions(current, other, Mastermind.getAllObstructions(space, Mastermind.ship), Ship.SHIP_RADIUS)){
+					if(space.isPathClearOfObstructions(current, other, Mastermind.getAllObstructionsBetweenAbstractObjects(space, Mastermind.currentTarget), Ship.SHIP_RADIUS)){
 //						System.out.println("\n\n\n\n\n rofl \n\n\n\n");
 						addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
 					}
@@ -45,6 +45,7 @@ public class LitGraph {
 		targetNode = map.get(target);
 		LITBOIZ.edges = edges;
 		LITBOIZ.nodes = nodes;
+//		System.out.println("yo i added all the edges and nodes");
 
 	}
 	
@@ -68,6 +69,7 @@ public class LitGraph {
 			this.position = position;
 			edges = new ArrayList<>();
 			this.h= h;
+//			System.out.println(h);
 		}
 		
 		public String toString(){
