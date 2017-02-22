@@ -9,14 +9,35 @@ import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.Position;
 
+/** 
+ * This class keeps track of Edges and Nodes for the path finding system.
+ * The A* algorithm searches on this graph.
+ * The Nodes hold Positions in the space simulator.
+ */
 public class LitGraph {
-		
+	
+	//nodes hold the Position objects
 	public ArrayList<Node> nodes;
+	
+	//weighted edges that connect Positions
 	public ArrayList<Edge> edges;
+	
+	//helper for mapping Positions to Nodes
 	Map<Position, Node> map;
+	
+	//node where search is starting from
 	Node startNode;
+	
+	//node the ship is searching for
 	Node targetNode;
 	
+	/**
+	 * 
+	 * @param start the position where the ship is currently 
+	 * @param target the position the ship should head to
+	 * @param points all the points between the start and target
+	 * @param space the simulator 
+	 */
 	public LitGraph(Position start, Position target, List<Position> points, Toroidal2DPhysics space){
 		nodes = new ArrayList<>();
 		edges = new ArrayList<>();
@@ -34,7 +55,6 @@ public class LitGraph {
 			for(Position other : points){
 				if(!other.equals(current)){ //don't add edge to itself
 					if(space.isPathClearOfObstructions(current, other, Mastermind.getAllObstructionsBetweenAbstractObjects(space, Mastermind.currentTarget), Ship.SHIP_RADIUS)){
-//						System.out.println("\n\n\n\n\n rofl \n\n\n\n");
 						addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
 					}
 				}
@@ -47,6 +67,12 @@ public class LitGraph {
 		LITBOIZ.nodes = nodes;
 	}
 	
+	/**
+	 * 
+	 * @param x first node to connect
+	 * @param y second node to connect
+	 * @param weight distance between the two positions
+	 */
 	public void addEdge(Node x, Node y, double weight){
 		Edge edgeX = new Edge(x, y, weight);
 		x.edges.add(edgeX);
@@ -56,6 +82,10 @@ public class LitGraph {
 		edges.add(edgeY);
 	}
 	
+	/**
+	 * @author Brian
+	 * Holds positions 
+	 */
 	static class Node {
 		public Position position;
 		public List<Edge> edges;
@@ -74,6 +104,10 @@ public class LitGraph {
 		}
 	}
 	
+	/**
+	 * @author Brian
+	 * connects positions with a weight
+	 */
 	class Edge {
 		public Node start;
 		public Node end;
