@@ -40,13 +40,17 @@ public class Mastermind {
 	public final static String ACTION_EVADE = "Evade";
 	public final static String ACTION_GO_TO_BASE = "Go to base";
 	private static String currentAction = "";
+	// saves enery of ship at previous state in time
 	private static double oldShipEnergy = Double.MIN_VALUE;
+	// counter that controls fire rate of agent
 	private static int fireTimer;
 	private static Position oldEnemyPosition;
 	public static Ship ship;
 	public static int TIMEOUT = 0;
+	// stack that holds each node in graph
 	public static Stack<Node> stack;
 	public static Position aStarCurrentPosition;
+	// degrees in radian form of which to turn
 	public static final double DEGREES_15 = 0.261799;
 	public static int aStarEnemyCounter = 0;
 	public static int aStarBeaconCounter = 0;
@@ -110,7 +114,7 @@ public class Mastermind {
 	 * Find the nearest beacon to this ship
 	 * @param space
 	 * @param ship
-	 * @return
+	 * @return closestBeacon
 	 */
 	public static Beacon pickNearestBeacon(Toroidal2DPhysics space, Ship ship) {
 		// get the current beacons
@@ -119,7 +123,8 @@ public class Mastermind {
 		Beacon closestBeacon = null;
 		double bestDistance = Double.POSITIVE_INFINITY;
 
-		for (Beacon beacon : beacons) { // loop through all beacons to find closest
+		// loop through all beacons to find closest
+		for (Beacon beacon : beacons) { 
 			double dist = space.findShortestDistance(ship.getPosition(), beacon.getPosition());
 			if (dist < bestDistance) {
 				bestDistance = dist;
@@ -135,12 +140,13 @@ public class Mastermind {
 	 * 
 	 * @param space
 	 * @param ship
-	 * @return
+	 * @return nearestBase
 	 */
 	public static Base findNearestBase(Toroidal2DPhysics space, Ship ship) {
 		double minDistance = Double.MAX_VALUE;
 		Base nearestBase = null;
 
+		// loop through all bases to find closest
 		for (Base base : space.getBases()) {
 			if (base.getTeamName().equalsIgnoreCase(ship.getTeamName())) {
 				double dist = space.findShortestDistance(ship.getPosition(), base.getPosition());
@@ -157,24 +163,20 @@ public class Mastermind {
 	 * Find the nearest ship on another team and aim for it
 	 * @param space
 	 * @param ship
-	 * @return
+	 * @return nearestShip
 	 */
 	public static Ship pickNearestEnemyShip(Toroidal2DPhysics space, Ship ship) {
 		double minDistance = Double.POSITIVE_INFINITY;
 		Ship nearestShip = null;
+		
+		// loop through all ships
 		for (Ship otherShip : space.getShips()) {
+			
 			// don't aim for our own team (or ourself)
 			if (otherShip.getTeamName().equals(ship.getTeamName())) {
 				continue;
 			}
-			
-			//TODO
-			//experimenting with only targeting Do Nothing Client below
-//			if(!(otherShip.getTeamName().equals("DoNothingTeam"))){
-//				continue;
-//			}
-			//experimenting with only targeting Do Nothing Client above
-			
+			// find shortest distance of ships
 			double distance = space.findShortestDistance(ship.getPosition(), otherShip.getPosition());
 			if (distance < minDistance) {
 				minDistance = distance;
@@ -185,6 +187,12 @@ public class Mastermind {
 		return nearestShip;
 	}
     
+	/**
+	 * Find the midpoint of two objects
+	 * @param start
+	 * @param objective
+	 * @return position in middle
+	 */
     public static Position findMidpoint(Position start, Position objective){
     	double x = (objective.getX() + start.getX()) / 2.0;
     	double y = (objective.getY() + start.getY()) / 2.0;
@@ -197,6 +205,7 @@ public class Mastermind {
      * @param start - the position of your ship
      * @param objective - position of destination
      * @param angle - angle of alternate path in radians
+     * @return altered position
      */
     public static Position alterPath(Position start, Position objective, double angle){
     	
@@ -215,18 +224,22 @@ public class Mastermind {
     	return new Position(rotatedFinalX, rotatedFinalY);
     }
     
+	/**
+	 * returns set of all obstructions
+	 * @param space
+	 * @param ship
+	 * @return set
+	 */
     public static Set<AbstractObject> getAllObstructions(Toroidal2DPhysics space, Ship ship){
     	Set<AbstractObject> set = space.getAllObjects();
-//    	Set<Base> baseSet = space.getBases();
-//    	Set<Asteroid> asteroidSet = space.getAsteroids();
-//    	set.addAll(baseSet);
-//        set.addAll(asteroidSet);
         Iterator<AbstractObject> iterator = set.iterator();
+        
+        // iterate through all objects and remove objects we don't consider an obstruction
         while(iterator.hasNext()) {
         	AbstractObject obj = iterator.next();
         	if(obj instanceof Beacon
-        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())
-        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0)
+        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable()) // remove mineable asteroids
+        		|| (obj instanceof Ship && obj.getId().compareTo(ship.getId()) == 0) // remove our ship
         		|| (obj instanceof Missile)
         		|| (obj instanceof EMP)){
     			iterator.remove();
@@ -236,21 +249,25 @@ public class Mastermind {
     	return set;
     }
     
+	/**
+	 * returns set of all obstructions between two objects
+	 * @param space
+	 * @param excludeObject
+	 * @return set
+	 */
     public static Set<AbstractObject> getAllObstructionsBetweenAbstractObjects(Toroidal2DPhysics space, AbstractObject excludeObject){
     	Set<AbstractObject> set = space.getAllObjects();
-//    	Set<Base> baseSet = space.getBases();
-//    	Set<Asteroid> asteroidSet = space.getAsteroids();
-//    	set.addAll(baseSet);
-//        set.addAll(asteroidSet);
+
+        // iterate through all objects and remove objects we don't consider an obstruction
         Iterator<AbstractObject> iterator = set.iterator();
         while(iterator.hasNext()) {
         	AbstractObject obj = iterator.next();
         	if(obj instanceof Beacon
-        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable())
+        		|| (obj instanceof Asteroid && ((Asteroid)obj).isMineable()) // remove mineable asteroids
         		|| (obj instanceof Missile)
         		|| (obj instanceof EMP)
-        		|| (obj.getId().compareTo(excludeObject.getId()) == 0)
-        		|| (obj.getId().compareTo(Mastermind.ship.getId()) == 0)){
+        		|| (obj.getId().compareTo(excludeObject.getId()) == 0) // remove target
+        		|| (obj.getId().compareTo(Mastermind.ship.getId()) == 0)){ // remove our ship
     			iterator.remove();
     		}
         }
@@ -258,6 +275,13 @@ public class Mastermind {
     	return set;
     }
     
+	/**
+	 * uses straight line interpolation to predict path of any position
+	 * @param space
+	 * @param old
+	 * @param offset
+	 * @return predicted position
+	 */
     public static Position predictPath(Toroidal2DPhysics space, Position old, Position current, double offset){
         double distanceToObjective = space.findShortestDistance(old, current); // find distance to object
         
@@ -272,21 +296,39 @@ public class Mastermind {
         return new Position(newX, newY); // create new position        
     }
 
+	/**
+	 * returns old enemy position
+	 * @return oldEnemyPosition 
+	 */
 	public static Position getOldEnemyPosition() {
 		return oldEnemyPosition;
 	}
 
+	/**
+	 * sets old enemy position
+	 * @param oldEnemyPosition
+	 */
 	public static void setOldEnemyPosition(Position oldEnemyPosition) {
 		Mastermind.oldEnemyPosition = oldEnemyPosition;
 	}
 	
+	/**
+	 * a* search algorithm. returns stack of all nodes in graph
+	 * @param start position
+	 * @param target position
+	 * @param points is a list of points besides the start and end nodes
+	 * @param space simulator object
+	 * @return oldEnemyPosition 
+	 */
 	public static Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
 		
+		// create stack and flags for first initialization 
 		Stack<Node> parents = new Stack<>();
 		Node lastVisited;
 		boolean startExists = false;
 		boolean targetExists = false;
 		
+		// check if start and target are already included in points
 		for(Position p : points) {
 			if(p.getX() == start.getX() && p.getY() == start.getY()){
 				startExists = true;
@@ -296,6 +338,7 @@ public class Mastermind {
 			}
 		}
 		
+		// add start or target to points if not already there
 		if(!startExists) {
 //			System.out.println("start is  not here");
 			points.add(start);
@@ -305,8 +348,8 @@ public class Mastermind {
 			points.add(target);
 		}
 
+		// create new graph
 		LitGraph graph = new LitGraph(start, target, points, space);
-//		List<Node> nodes = graph.nodes;
 		
 		//set of visited nodes
 		Set<Node> closed = new HashSet<>();
@@ -328,7 +371,6 @@ public class Mastermind {
 			Node child = e.end;
 			child.g = e.weight;
 			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
-//			System.out.println("\n\n\n ADDING TO DA FRINGE IN ASTAR \n\n\n");
 			fringe.add(child);	
 		}
 		
@@ -342,15 +384,13 @@ public class Mastermind {
 			TIMEOUT++;
 			
 			//check for timeout
-			if (TIMEOUT > 1000) { //TODO
-//				System.out.println("TIMEOUT > 1000");
+			if (TIMEOUT > 1000) { 
 				TIMEOUT = 0;
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
 			//target was not found
 			if(fringe.isEmpty()){
-//				System.out.println("FRINGE IS EMPTY");
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
@@ -358,10 +398,8 @@ public class Mastermind {
 			Node next = fringe.poll();
 			
 			//h(n)=0 means found target
-//			System.out.println(next.h);
 			if(next.h == 0) {
 				parents.add(next);
-//				System.out.println("FOUND TARGET");
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
@@ -383,7 +421,6 @@ public class Mastermind {
 					if(child.f > child.g + child.h) child.f = child.g + child.h;
 						
 					if(!fringe.contains(child) && !closed.contains(child)){
-//						System.out.println("adding child to the fringe");
 						 fringe.add(child);	
 					}
 				}
@@ -391,6 +428,10 @@ public class Mastermind {
 		}
 	}
 	
+	/**
+	 * checks if start node is at top of stack
+	 * @return stack of nodes from graph 
+	 */
 	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
 		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
 			stack.pop();
@@ -412,9 +453,7 @@ public class Mastermind {
 	 * @return Whether or not a straight line path between two positions contains obstructions from a given set
 	 */
 	
-	/// we might have to look here again
 	public static boolean isPathClearOfObstructions(Position startPosition, Position goalPosition, Set<AbstractObject> obstructions, int freeRadius, Toroidal2DPhysics space) {
-//		System.out.println(goalPosition.toString());
 		final double checkAngle = 0.349; // 20 degrees
 		Vector2D pathToGoal = space.findShortestDistanceVector(startPosition,  goalPosition); 	// Shortest straight line path from startPosition to goalPosition
 		double distanceToGoal = pathToGoal.getMagnitude();										// Distance of straight line path
@@ -437,7 +476,6 @@ public class Mastermind {
 			// Ignore angles greater than arbitrary angle
 			angleBetween = Math.abs(pathToObstruction.angleBetween(pathToGoal));
 			if (angleBetween > checkAngle) {
-//				System.out.println("yo this angle is lit");
 				continue;
 			}
 
@@ -447,52 +485,58 @@ public class Mastermind {
 				break;
 			}
 		}
-//		System.out.println("Start position: " + startPosition + " \n Goal Position: " + goalPosition);
-//		System.out.println(pathIsClear);
 		return pathIsClear;
 		
 	}
 	
-//	public static Position predictPathConstantAcceleration(Toroidal2DPhysics space, Ship ship, double velocity){
-//		AbstractAction action = ship.getCurrentAction();
-//		Movement mv = action.getMovement(space, ship);
-//		Vector2D accel = mv.getTranslationalAcceleration();
-//		//get velocity from Position object
-//	}
-	// we may have to return (not likely)
+	/**
+	 * returns alternate points when there is an obstruction in the original path (using limited recursion)
+	 * @param space simulator object 
+	 * @param ship our ship 
+	 * @param start position 
+	 * @param end position 
+	 * @param counter for exit condition 
+	 * @return result containing alternate points 
+	 */
 	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end, int counter){
 		
 		//check if points are equal
 		if(start.getX() == end.getX() && start.getY() == end.getY()){
-//			System.out.println("hey its null u suk \n\n");
 			return null;
 		} 
+	
 		//recursion is limited to 5 times
 		if (counter > 4) { 
 			return null;
 		}
 		
 		ArrayList<Position> result = new ArrayList<>();
-//		System.out.println("begin!!!!");
+		// check if path is clear 
 		if(isPathClearOfObstructions(start, end, Mastermind.getAllObstructionsBetweenAbstractObjects(space, Mastermind.currentTarget), ship.getRadius(), space)){
-//			result.add(end);
-//			System.out.println("ITS CLEAR!!!!");
+			//do nothing
 		} else {
-//			System.out.println("NOT CLEAR YO");
 			
-			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_15);
-			Position toTheLeft = alterPath(start, findMidpoint(start, end), -DEGREES_15);
+			//TODO 
+			//if(distance to obstruction is < 20) DEGREES_45
+			// else if (distance to obstruction is < 40) DEGREES_25
+			// else { DEGREES_15
+			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_15); // position to the right 
+			Position toTheLeft = alterPath(start, findMidpoint(start, end), -DEGREES_15);  // position to the left
+			
+			// add to result 
 			result.add(toTheLeft);
 			result.add(toTheRight);
+			
+			// if path to right is clear
 			if(!isPathClearOfObstructions(start, toTheRight, getAllObstructions(space, ship), ship.getRadius(), space)){
-//				System.out.println("theres another obstruction to the right");
 				ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, toTheRight, ++counter);
 				if(alternatePoints != null){
 					result.addAll(alternatePoints);
 				}
 			}
+			
+			//  if path to left is clear
 			if(!isPathClearOfObstructions(start, toTheLeft, getAllObstructions(space, ship), ship.getRadius(), space)){
-//				System.out.println("theres another obstruction to the left");
 				ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, toTheLeft, ++counter);
 				if(alternatePoints != null){
 					result.addAll(alternatePoints);
@@ -502,10 +546,15 @@ public class Mastermind {
 		return result;
 	}
 	
+	/**
+	 * reverses stack generated from a*
+	 * @param stack of nodes in graph
+	 * @return reversedStack
+	 */
 	public static Stack<Node> reverseStack(Stack<Node> stack){
 		
 		Stack<Node> reversedStack = new Stack<>();
-		while(!stack.isEmpty()){
+		while(!stack.isEmpty()){ 
 			reversedStack.push(stack.pop());
 		}
 		return reversedStack;

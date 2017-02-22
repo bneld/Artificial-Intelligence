@@ -63,8 +63,8 @@ public class LITBOIZ extends TeamClient {
 				ourShip = ship;
 				if(Mastermind.ship == null) Mastermind.ship = ship;
 				
-				AbstractAction action = getWeaponShipAction(space, ship);
 				
+				AbstractAction action = getWeaponShipAction(space, ship);
 				actions.put(ship.getId(), action);
 				
 			} else {

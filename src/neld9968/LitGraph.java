@@ -45,8 +45,6 @@ public class LitGraph {
 		targetNode = map.get(target);
 		LITBOIZ.edges = edges;
 		LITBOIZ.nodes = nodes;
-//		System.out.println("yo i added all the edges and nodes");
-
 	}
 	
 	public void addEdge(Node x, Node y, double weight){
@@ -69,7 +67,6 @@ public class LitGraph {
 			this.position = position;
 			edges = new ArrayList<>();
 			this.h= h;
-//			System.out.println(h);
 		}
 		
 		public String toString(){
