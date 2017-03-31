@@ -52,6 +52,7 @@ public class Mastermind {
 	public static Position aStarCurrentPosition;
 	// degrees in radian form of which to turn
 	public static final double DEGREES_15 = 0.261799;
+	public static final double DEGREES_25 = 0.436332;
 	public static int aStarEnemyCounter = 0;
 	public static int aStarBeaconCounter = 0;
 	public static AbstractObject currentTarget;
@@ -520,8 +521,8 @@ public class Mastermind {
 			//if(distance to obstruction is < 20) DEGREES_45
 			// else if (distance to obstruction is < 40) DEGREES_25
 			// else { DEGREES_15
-			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_15); // position to the right 
-			Position toTheLeft = alterPath(start, findMidpoint(start, end), -DEGREES_15);  // position to the left
+			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_25); // position to the right 
+			Position toTheLeft = alterPath(start, findMidpoint(start, end), -DEGREES_25);  // position to the left
 			
 			// add to result 
 			result.add(toTheLeft);
