@@ -44,6 +44,7 @@ public class Mastermind {
 	private static double oldShipEnergy = Double.MIN_VALUE;
 	// counter that controls fire rate of agent
 	private static int fireTimer;
+	
 	private static Position oldEnemyPosition;
 	public static Ship ship;
 	public static int TIMEOUT = 0;
@@ -56,6 +57,16 @@ public class Mastermind {
 	public static int aStarEnemyCounter = 0;
 	public static int aStarBeaconCounter = 0;
 	public static AbstractObject currentTarget;
+	
+	//chromosome parameters
+	public static int rateOfFireFast = 5;
+	public static int rateOfFireSlow = 10;
+	public static int enemyDistanceThresholdClose = 40;
+	public static int enemyDistanceThresholdMedium = 100;
+	public static int enemyDistanceThresholdFar = 200;
+	public static int aStarThreshold = 40;
+	public static int aStarCounter = 10;
+
 	
 	/**
 	 * Gets the action for the ship
