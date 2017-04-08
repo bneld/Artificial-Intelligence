@@ -284,7 +284,7 @@ public class LITBOIZ extends TeamClient {
 		//if a Node is on the stack, go to that Position
 		else {
 			//if ship is approaching current target
-    		if(space.findShortestDistance(currentPosition, Mastermind.aStarCurrentPosition) < Mastermind.aStarThreshold){
+    		if(space.findShortestDistance(currentPosition, Mastermind.aStarCurrentPosition) < Mastermind.aStarDistanceThreshold){
     			target = Mastermind.stack.pop().position;
     			Mastermind.aStarCurrentPosition = target;
     		} else { //resume course to Node on top of A* stack

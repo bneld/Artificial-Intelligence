@@ -64,7 +64,7 @@ public class Mastermind {
 	public static int enemyDistanceThresholdClose = 40;
 	public static int enemyDistanceThresholdMedium = 100;
 	public static int enemyDistanceThresholdFar = 200;
-	public static int aStarThreshold = 40;
+	public static int aStarDistanceThreshold = 40;
 	public static int aStarCounter = 10;
 
 	
