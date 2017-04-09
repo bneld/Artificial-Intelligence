@@ -1,0 +1,4 @@
+score,rateOfFireFast,rateOfFireSlow,enemyDistanceThresholdClose,enemyDistanceThresholdMedium,enemyDistanceThresholdFar,aStarDistanceThreshold,aStarCounter
+31247.0,9,60,51,200,217,10922
+21214.0,2,68,18,120,234,5519
+50241.0,15,68,27,136,371,7313

@@ -1,6 +1,8 @@
 package neld9968;
 
 import java.awt.Color;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -325,6 +327,39 @@ public class LITBOIZ extends TeamClient {
 			}
 		}
 		System.out.println(score);
+
+        FileWriter fileWriter = null;
+
+        try {
+            fileWriter = new FileWriter("LITCSV.csv", true);
+            fileWriter.append("\n" + Double.toString(score) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.rateOfFireFast) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.rateOfFireSlow) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdClose) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdMedium) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdFar) + ",");
+            fileWriter.append(Integer.toString(currentChromosome.aStarDistanceThreshold));
+            fileWriter.append(Integer.toString(currentChromosome.aStarCounter));
+
+            System.out.println("CSV file was updated successfully !!!");
+
+        } catch (Exception e) {
+            System.out.println("Error when writing to file");
+            e.printStackTrace();
+        } finally {
+
+            try {
+                fileWriter.flush();
+                fileWriter.close();
+
+            } catch (IOException e) {
+
+                System.out.println("Error when closing file writer");
+                e.printStackTrace();
+            }
+
+        }
+
 	}
 
 	/**
