@@ -1,0 +1,11 @@
+rateOfFireFast,rateOfFireSlow,enemyDistanceThresholdClose,enemyDistanceThresholdMedium,enemyDistanceThresholdFar,aStarDistanceThreshold,aStarCounter
+7,55,38,93,344,66,10
+39,67,39,143,367,144,33
+26,93,0,110,372,115,29
+27,70,30,131,354,161,19
+20,54,39,91,360,63,27
+44,82,14,99,428,36,2
+3,72,47,194,476,60,1
+41,79,20,170,263,67,3
+32,54,23,127,442,49,6
+39,93,30,187,269,24,30

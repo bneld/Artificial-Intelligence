@@ -89,9 +89,6 @@ public class LITGENERATOR {
 		return child;
 	}
 	
-	public static void selection() {
-		
-	}
 	public static void main(String[] args){
 		LITCHROMOSOME parent1 = new LITCHROMOSOME();
 //		LITCHROMOSOME parent2 = new LITCHROMOSOME();
