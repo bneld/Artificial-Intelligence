@@ -100,7 +100,7 @@ public class LITCHROMOSOME {
         return null;
 	}
 	public static void main(String[] args){
-		getChromosomeFromCsv(999);
+		//getChromosomeFromCsv(999);
 	}
 	
 	public int getAttributeByIndex(int index){
