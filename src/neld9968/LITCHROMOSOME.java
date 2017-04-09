@@ -1,23 +1,28 @@
 package neld9968;
 
-import java.util.Random;
-
+/**
+ * This is the chromosome representation that allows the agent to learn intelligent behavior.
+ * The different alleles and their thresholds (to prevent ridiculous values) are defined. 
+ * There are useful methods that interact with the data inside of the chromosomes.
+ * 
+ * @author Luis and Brian
+ */
 public class LITCHROMOSOME {
 	
-	public final int MIN_RATE_OF_FIRE = 100; //min > max because the timer counts up
-	public final int MED_RATE_OF_FIRE = 50;
-	public final int MAX_RATE_OF_FIRE = 0;
+	public final static int MIN_RATE_OF_FIRE = 100; //min > max because the timer counts up
+	public final static int MED_RATE_OF_FIRE = 50;
+	public final static int MAX_RATE_OF_FIRE = 0;
 	
-	public final int MIN_DISTANCE_THRESHOLD = 0;
-	public final int MED_LOW_DISTANCE_THRESHOLD = 75;
-	public final int MED_HIGH_DISTANCE_THRESHOLD = 200;
-	public final int MAX_DISTANCE_THRESHOLD = 500;
+	public final static int MIN_DISTANCE_THRESHOLD = 0;
+	public final static int MED_LOW_DISTANCE_THRESHOLD = 75;
+	public final static int MED_HIGH_DISTANCE_THRESHOLD = 200;
+	public final static int MAX_DISTANCE_THRESHOLD = 500;
 	
-	public final int MIN_ASTAR_DISTANCE_THRESHOLD = 0;
-	public final int MAX_ASTAR_DISTANCE_THRESHOLD = 200;
+	public final static int MIN_ASTAR_DISTANCE_THRESHOLD = 0;
+	public final static int MAX_ASTAR_DISTANCE_THRESHOLD = 200;
 	
-	public final int MIN_ASTAR_COUNTER = 0; //min > max because the timer counts up
-	public final int MAX_ASTAR_COUNTER = 50;
+	public final static int MIN_ASTAR_COUNTER = 0; //min > max because the timer counts up
+	public final static int MAX_ASTAR_COUNTER = 50;
 
 	
 	public int rateOfFireFast = 5;

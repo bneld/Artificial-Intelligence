@@ -4,8 +4,8 @@
 	<height>1080</height>
 	<width>1600</width>
 	
-	<!-- Number of steps of simulation -->
-	<simulationSteps>20000</simulationSteps>
+	<!-- Number of steps of simulation was 20000 -->
+	<simulationSteps>3000</simulationSteps>
 
 	<!-- Timestep for a simulation (in seconds for the physics equations) -->
 	<simulationTimeStep>0.05</simulationTimeStep>

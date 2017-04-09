@@ -19,6 +19,8 @@ import spacesettlers.objects.resources.*;
 import spacesettlers.objects.weapons.EMP;
 import spacesettlers.objects.weapons.Missile;
 import spacesettlers.clients.TeamClient;
+import spacesettlers.clients.ImmutableTeamInfo;
+import spacesettlers.clients.Team;
 import spacesettlers.graphics.CircleGraphics;
 import spacesettlers.graphics.LineGraphics;
 import spacesettlers.graphics.SpacewarGraphics;
@@ -41,6 +43,7 @@ public class LITBOIZ extends TeamClient {
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
+	LITCHROMOSOME currentChromosome = new LITCHROMOSOME();
 	ArrayList<Position> testPositions = new ArrayList<>();
 	public static ArrayList<Edge> edges = new ArrayList<>();
 	public static ArrayList<Node> nodes = new ArrayList<>();
@@ -208,7 +211,7 @@ public class LITBOIZ extends TeamClient {
 		else {
 	        Position enemyPos = currentEnemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
-	        System.out.println(distanceToEnemy);
+//	        System.out.println(distanceToEnemy);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	        }
@@ -312,7 +315,16 @@ public class LITBOIZ extends TeamClient {
 
 	@Override
 	public void shutDown(Toroidal2DPhysics space) {
-
+		// write score & alleles to file 
+		double score = 0;
+		System.out.println("yo its lit i think we won");
+		System.out.println(currentChromosome.rateOfFireFast);
+		for (ImmutableTeamInfo team : space.getTeamInfo()){
+			if (team.getTeamName().equals("LITBOIZ")){
+				score = team.getScore();
+			}
+		}
+		System.out.println(score);
 	}
 
 	/**
