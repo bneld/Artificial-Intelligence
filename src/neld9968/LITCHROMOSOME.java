@@ -58,6 +58,9 @@ public class LITCHROMOSOME {
 		this.aStarDistanceThreshold = aStarDistanceThreshold;
 		this.aStarCounter = aStarCounter;
 	}
+	public LITCHROMOSOME getChromosomeFromCsv(){
+		
+	}
 	
 	public int getAttributeByIndex(int index){
 		switch(index){
