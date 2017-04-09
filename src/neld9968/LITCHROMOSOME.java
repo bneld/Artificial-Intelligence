@@ -3,7 +3,6 @@ package neld9968;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * This is the chromosome representation that allows the agent to learn intelligent behavior.
@@ -59,6 +58,7 @@ public class LITCHROMOSOME {
 		this.aStarDistanceThreshold = aStarDistanceThreshold;
 		this.aStarCounter = aStarCounter;
 	}
+	
 	public static LITCHROMOSOME getChromosomeFromCsv(int lineNumber){
 		String csvFile = "children.csv";
 		BufferedReader br = null;
@@ -98,9 +98,6 @@ public class LITCHROMOSOME {
             }
         }
         return null;
-	}
-	public static void main(String[] args){
-		//getChromosomeFromCsv(999);
 	}
 	
 	public int getAttributeByIndex(int index){

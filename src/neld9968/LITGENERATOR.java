@@ -1,5 +1,12 @@
 package neld9968;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Random;
 
 /**
@@ -89,13 +96,8 @@ public class LITGENERATOR {
 		return child;
 	}
 	
-	public static void main(String[] args){
-		LITCHROMOSOME parent1 = new LITCHROMOSOME();
-//		LITCHROMOSOME parent2 = new LITCHROMOSOME();
-		parent1.print();
-//		parent2.print();
-//		LITCHROMOSOME punkAssKid = crossover(parent1, parent2);
-		LITCHROMOSOME punkAssKid = mutate(parent1);
-		punkAssKid.print();
-	}
+//	public static void main(String[] args){
+//
+//		callBriansMethod();
+//	}
 }

@@ -11,6 +11,13 @@ import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
 import spacesettlers.objects.weapons.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -59,7 +66,7 @@ public class Mastermind {
 	public static AbstractObject currentTarget;
 	
 	//chromosome parameters
-	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME();
+	static LITCHROMOSOME currentChromosome = initChromosome();
 
 	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
 	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
@@ -69,6 +76,12 @@ public class Mastermind {
 	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
 	public static int aStarCounter = currentChromosome.aStarCounter;
 	
+	
+	public static void main(String[] args){
+		for(int i = 0; i < 10; i++){
+			initChromosome();
+		}
+	}
 	/**
 	 * Gets the action for the ship
 	 * @return currentAction
@@ -571,5 +584,46 @@ public class Mastermind {
 			reversedStack.push(stack.pop());
 		}
 		return reversedStack;
+	}
+	
+	public static LITCHROMOSOME initChromosome() {
+		File numberFile = new File("LITNUMBER.txt");
+		boolean randomize = !(new File("children.csv").exists());
+		int numberToWrite = 0;
+		if(randomize){
+			System.out.println("RANDOM");
+			return new LITCHROMOSOME();	
+		}
+		else {
+			try {
+				
+				if(!numberFile.exists()){
+					System.out.println("File not exist");
+					numberToWrite = 0;
+				}
+				else {
+					//read number line from LITNUMBER.txt
+					FileInputStream fileInStream = new FileInputStream(numberFile);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
+					String line = reader.readLine();
+					
+					if(line != null && !line.isEmpty()){
+						numberToWrite = Integer.parseInt(line);
+					} else {
+						numberToWrite = 0;
+					}
+					reader.close();
+				}
+				FileWriter f2 = new FileWriter("LITNUMBER.txt", false);
+				f2.write(Integer.toString(numberToWrite + 1));		    
+			    f2.close();
+			    System.out.println("Taking from children.csv line " + numberToWrite);
+			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
+			} catch (Exception e) {
+	            System.out.println("Error when reading/writing file");
+	            e.printStackTrace();
+	        }
+			return null;
+		}
 	}
 }
