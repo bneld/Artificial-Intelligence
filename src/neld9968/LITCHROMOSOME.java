@@ -23,12 +23,8 @@ public class LITCHROMOSOME {
 	
 	public final static int MIN_ASTAR_COUNTER = 0; //min > max because the timer counts up
 	public final static int MAX_ASTAR_COUNTER = 50;
-<<<<<<< HEAD
-
-	//alleles
-=======
 	
->>>>>>> 47c0c2c67244deb9aa54f0f98f64f4a3967bff74
+	//alleles
 	public int rateOfFireFast = 5;
 	public int rateOfFireSlow = 10;
 	public int enemyDistanceThresholdClose = 40;
@@ -39,7 +35,7 @@ public class LITCHROMOSOME {
 	
 	//resulting score
 	public double score = 0;
-	
+
 	public LITCHROMOSOME() {
 		rateOfFireFast = getRandom(MAX_RATE_OF_FIRE, MED_RATE_OF_FIRE);
 		rateOfFireSlow = getRandom(MED_RATE_OF_FIRE, MIN_RATE_OF_FIRE);
@@ -91,15 +87,14 @@ public class LITCHROMOSOME {
 	
 	@Override
 	public String toString(){
-		return this.rateOfFireFast + ", "
-				+ this.rateOfFireSlow + ", "
-				+ this.enemyDistanceThresholdClose + ", "
-				+ this.enemyDistanceThresholdMedium + ", "
-				+ this.enemyDistanceThresholdFar + ", "
-				+ this.aStarDistanceThreshold + ", "
+ 		return this.rateOfFireFast + ", "
+ 				+ this.rateOfFireSlow + ", "
+ 				+ this.enemyDistanceThresholdClose + ", "
+ 				+ this.enemyDistanceThresholdMedium + ", "
+ 				+ this.enemyDistanceThresholdFar + ", "
+ 				+ this.aStarDistanceThreshold + ", "
 				+ this.aStarCounter;
-	}
-	
+ 	}
 	public static int getRandom(int low, int high){
 		return low + (int)(Math.random() * ((high - low) + 1));
 	}

@@ -1,12 +1,4 @@
 score,rateOfFireFast,rateOfFireSlow,enemyDistanceThresholdClose,enemyDistanceThresholdMedium,enemyDistanceThresholdFar,aStarDistanceThreshold,aStarCounter
-<<<<<<< HEAD
-31247,9,60,51,200,217,109,22
-21214,2,68,18,120,234,55,19
-50241,15,68,27,136,371,73,13
-55026,9,65,52,170,489,136,24
-35693,9,65,52,170,489,136,24
-53471,9,65,52,170,489,136,24
-=======
 
 -27809.0,1,92,4,167,475,15650
 -22893.0,13,98,23,168,289,321
@@ -208,4 +200,3 @@ score,rateOfFireFast,rateOfFireSlow,enemyDistanceThresholdClose,enemyDistanceThr
 52753.0,6,53,35,93,379,15539
 70995.0,29,63,35,79,475,3932
 49530.0,5,85,73,133,201,17632
->>>>>>> 47c0c2c67244deb9aa54f0f98f64f4a3967bff74
