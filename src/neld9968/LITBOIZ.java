@@ -337,7 +337,7 @@ public class LITBOIZ extends TeamClient {
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdClose) + ",");
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdMedium) + ",");
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdFar) + ",");
-            fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold));
+            fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold) + ",");
             fileWriter.append(Integer.toString(Mastermind.aStarCounter));
 
             System.out.println("CSV file was updated successfully !!!");
