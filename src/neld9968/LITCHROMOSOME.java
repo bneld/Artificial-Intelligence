@@ -59,32 +59,33 @@ public class LITCHROMOSOME {
 		this.aStarDistanceThreshold = aStarDistanceThreshold;
 		this.aStarCounter = aStarCounter;
 	}
-	public LITCHROMOSOME getChromosomeFromCsv(){
-		ArrayList<LITCHROMOSOME> parents = new ArrayList<>(NUM_SELECTIONS);
-		String csvFile = "LITCSV.csv";
+	public static LITCHROMOSOME getChromosomeFromCsv(int lineNumber){
+		String csvFile = "children.csv";
 		BufferedReader br = null;
         String line = "";
         String cvsSplitBy = ",";
 
         try {
             br = new BufferedReader(new FileReader(csvFile));
-            while ((line = br.readLine()) != null) {
-
-                // use comma as separator
-                String[] chromosome = line.split(cvsSplitBy);
-                
-                LITCHROMOSOME chrom = new LITCHROMOSOME(Integer.parseInt(chromosome[1]),
-                		Integer.parseInt(chromosome[2]),
-                		Integer.parseInt(chromosome[3]),
-                		Integer.parseInt(chromosome[4]),
-                		Integer.parseInt(chromosome[5]),
-                		Integer.parseInt(chromosome[6]),
-                		Integer.parseInt(chromosome[7]));
-                chrom.score = Integer.parseInt(chromosome[0]);
-                
-                parents.add(chrom);
-                System.out.println(chrom);
+            //read the lines before 
+            for(int i = 0; i < lineNumber; i++){
+            	br.readLine();
             }
+            line = br.readLine();
+
+            // use comma as separator
+            String[] chromosome = line.split(cvsSplitBy);
+            
+            LITCHROMOSOME chromo = new LITCHROMOSOME(Integer.parseInt(chromosome[0]),
+            		Integer.parseInt(chromosome[1]),
+            		Integer.parseInt(chromosome[2]),
+            		Integer.parseInt(chromosome[3]),
+            		Integer.parseInt(chromosome[4]),
+            		Integer.parseInt(chromosome[5]),
+            		Integer.parseInt(chromosome[6]));   
+            System.out.println(chromo);
+            return chromo;
+            
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -96,7 +97,10 @@ public class LITCHROMOSOME {
                 }
             }
         }
-        return parents;
+        return null;
+	}
+	public static void main(String[] args){
+		getChromosomeFromCsv(999);
 	}
 	
 	public int getAttributeByIndex(int index){
