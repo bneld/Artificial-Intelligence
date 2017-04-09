@@ -11,6 +11,13 @@ import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
 import spacesettlers.objects.weapons.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -59,7 +66,7 @@ public class Mastermind {
 	public static AbstractObject currentTarget;
 	
 	//chromosome parameters
-	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME();
+	static LITCHROMOSOME currentChromosome = initChromosome();
 
 	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
 	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
@@ -571,5 +578,52 @@ public class Mastermind {
 			reversedStack.push(stack.pop());
 		}
 		return reversedStack;
+	}
+	
+	public static LITCHROMOSOME initChromosome() {
+		File numberFile = new File("LITNUMBER.txt");
+		boolean randomize = false;
+		int numberToWrite = 0;
+		LITCHROMOSOME current = new LITCHROMOSOME();
+		try {
+			FileInputStream fileInStream = new FileInputStream(numberFile);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
+			String line = reader.readLine();
+			
+			if(line != null && !line.isEmpty() && !line.equals(" ")){
+//				System.out.println(line + " <-- that is the line");
+				if(line.contains("-")) {
+					randomize = true;
+					numberToWrite = -1;
+				} else {
+					numberToWrite = Integer.parseInt(line);
+				}
+			}
+			
+			numberToWrite = numberToWrite + 1;
+			
+			try {
+			    FileWriter f2 = new FileWriter("LITNUMBER.txt", false);
+			    if(randomize) {
+					System.out.println("randomize that hoe");
+					f2.write(Integer.toString(numberToWrite));
+				}  else {
+					System.out.println("call brians method");
+					current = LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
+					f2.write(Integer.toString(numberToWrite));
+				}			    
+			    f2.close();
+			} catch (IOException e) {
+			    System.out.println("error when writing to file");
+				e.printStackTrace();
+			}      
+
+			fileInStream.close();
+	        reader.close();
+		} catch (Exception e) {
+            System.out.println("Error when reading file");
+            e.printStackTrace();
+        }
+		return current;
 	}
 }
