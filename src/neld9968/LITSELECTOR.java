@@ -10,6 +10,11 @@ public class LITSELECTOR {
 	
 	public static final int NUM_SELECTIONS = 1000;
 	
+	
+	public static void main(String[] args){
+		selection();
+	}
+	
 	public static void selection() {
 		ArrayList<LITCHROMOSOME> parents = readParents();
 		ArrayList<LITCHROMOSOME> children = new ArrayList<>(NUM_SELECTIONS);
@@ -110,7 +115,5 @@ public class LITSELECTOR {
 
         }
 	}
-	public static void main(String[] args){
-		selection();
-	}
+	
 }

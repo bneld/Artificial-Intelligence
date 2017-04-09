@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#echo "new directory: $DIR"
+
+for run in {1..40}
+do
+	echo "run number: $run"
+ 	ant competeLadder &
+ 	sleep 1  # Waits 1 second
+ 	ant competeLadder &
+ 	sleep 1  # Waits 1 second
+ 	ant competeLadder &
+ 	sleep 1  # Waits 1 second
+ 	ant competeLadder &
+ 	sleep 1  # Waits 1 second
+ 	ant competeLadder 
+ 	sleep 1  # Waits 1 second
+done
+
+
