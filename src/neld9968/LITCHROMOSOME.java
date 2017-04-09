@@ -1,5 +1,10 @@
 package neld9968;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
 /**
  * This is the chromosome representation that allows the agent to learn intelligent behavior.
  * The different alleles and their thresholds (to prevent ridiculous values) are defined. 
@@ -23,12 +28,8 @@ public class LITCHROMOSOME {
 	
 	public final static int MIN_ASTAR_COUNTER = 0; //min > max because the timer counts up
 	public final static int MAX_ASTAR_COUNTER = 50;
-<<<<<<< HEAD
-
-	//alleles
-=======
 	
->>>>>>> 47c0c2c67244deb9aa54f0f98f64f4a3967bff74
+	//alleles
 	public int rateOfFireFast = 5;
 	public int rateOfFireSlow = 10;
 	public int enemyDistanceThresholdClose = 40;
@@ -39,7 +40,7 @@ public class LITCHROMOSOME {
 	
 	//resulting score
 	public double score = 0;
-	
+
 	public LITCHROMOSOME() {
 		rateOfFireFast = getRandom(MAX_RATE_OF_FIRE, MED_RATE_OF_FIRE);
 		rateOfFireSlow = getRandom(MED_RATE_OF_FIRE, MIN_RATE_OF_FIRE);
@@ -59,7 +60,43 @@ public class LITCHROMOSOME {
 		this.aStarCounter = aStarCounter;
 	}
 	public LITCHROMOSOME getChromosomeFromCsv(){
-		
+		ArrayList<LITCHROMOSOME> parents = new ArrayList<>(NUM_SELECTIONS);
+		String csvFile = "LITCSV.csv";
+		BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = ",";
+
+        try {
+            br = new BufferedReader(new FileReader(csvFile));
+            while ((line = br.readLine()) != null) {
+
+                // use comma as separator
+                String[] chromosome = line.split(cvsSplitBy);
+                
+                LITCHROMOSOME chrom = new LITCHROMOSOME(Integer.parseInt(chromosome[1]),
+                		Integer.parseInt(chromosome[2]),
+                		Integer.parseInt(chromosome[3]),
+                		Integer.parseInt(chromosome[4]),
+                		Integer.parseInt(chromosome[5]),
+                		Integer.parseInt(chromosome[6]),
+                		Integer.parseInt(chromosome[7]));
+                chrom.score = Integer.parseInt(chromosome[0]);
+                
+                parents.add(chrom);
+                System.out.println(chrom);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return parents;
 	}
 	
 	public int getAttributeByIndex(int index){
@@ -94,15 +131,14 @@ public class LITCHROMOSOME {
 	
 	@Override
 	public String toString(){
-		return this.rateOfFireFast + ", "
-				+ this.rateOfFireSlow + ", "
-				+ this.enemyDistanceThresholdClose + ", "
-				+ this.enemyDistanceThresholdMedium + ", "
-				+ this.enemyDistanceThresholdFar + ", "
-				+ this.aStarDistanceThreshold + ", "
+ 		return this.rateOfFireFast + ", "
+ 				+ this.rateOfFireSlow + ", "
+ 				+ this.enemyDistanceThresholdClose + ", "
+ 				+ this.enemyDistanceThresholdMedium + ", "
+ 				+ this.enemyDistanceThresholdFar + ", "
+ 				+ this.aStarDistanceThreshold + ", "
 				+ this.aStarCounter;
-	}
-	
+ 	}
 	public static int getRandom(int low, int high){
 		return low + (int)(Math.random() * ((high - low) + 1));
 	}
