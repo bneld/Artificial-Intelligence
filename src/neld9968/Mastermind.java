@@ -59,14 +59,15 @@ public class Mastermind {
 	public static AbstractObject currentTarget;
 	
 	//chromosome parameters
-	public static int rateOfFireFast = 5;
-	public static int rateOfFireSlow = 10;
-	public static int enemyDistanceThresholdClose = 40;
-	public static int enemyDistanceThresholdMedium = 100;
-	public static int enemyDistanceThresholdFar = 200;
-	public static int aStarDistanceThreshold = 40;
-	public static int aStarCounter = 10;
+	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME();
 
+	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
+	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
+	public static int enemyDistanceThresholdClose = currentChromosome.enemyDistanceThresholdClose;
+	public static int enemyDistanceThresholdMedium = currentChromosome.enemyDistanceThresholdMedium;
+	public static int enemyDistanceThresholdFar = currentChromosome.enemyDistanceThresholdFar;
+	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
+	public static int aStarCounter = currentChromosome.aStarCounter;
 	
 	/**
 	 * Gets the action for the ship

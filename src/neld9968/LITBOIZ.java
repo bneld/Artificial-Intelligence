@@ -45,7 +45,6 @@ public class LITBOIZ extends TeamClient {
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
-	LITCHROMOSOME currentChromosome = new LITCHROMOSOME();
 	ArrayList<Position> testPositions = new ArrayList<>();
 	public static ArrayList<Edge> edges = new ArrayList<>();
 	public static ArrayList<Node> nodes = new ArrayList<>();
@@ -320,7 +319,7 @@ public class LITBOIZ extends TeamClient {
 		// write score & alleles to file 
 		double score = 0;
 		System.out.println("yo its lit i think we won");
-		System.out.println(currentChromosome.rateOfFireFast);
+		System.out.println(Mastermind.rateOfFireFast);
 		for (ImmutableTeamInfo team : space.getTeamInfo()){
 			if (team.getTeamName().equals("LITBOIZ")){
 				score = team.getScore();
@@ -333,13 +332,13 @@ public class LITBOIZ extends TeamClient {
         try {
             fileWriter = new FileWriter("LITCSV.csv", true);
             fileWriter.append("\n" + Double.toString(score) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.rateOfFireFast) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.rateOfFireSlow) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdClose) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdMedium) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.enemyDistanceThresholdFar) + ",");
-            fileWriter.append(Integer.toString(currentChromosome.aStarDistanceThreshold));
-            fileWriter.append(Integer.toString(currentChromosome.aStarCounter));
+            fileWriter.append(Integer.toString(Mastermind.rateOfFireFast) + ",");
+            fileWriter.append(Integer.toString(Mastermind.rateOfFireSlow) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdClose) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdMedium) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdFar) + ",");
+            fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold));
+            fileWriter.append(Integer.toString(Mastermind.aStarCounter));
 
             System.out.println("CSV file was updated successfully !!!");
 
