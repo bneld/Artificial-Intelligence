@@ -23,7 +23,6 @@ public class LITCHROMOSOME {
 	
 	public final static int MIN_ASTAR_COUNTER = 0; //min > max because the timer counts up
 	public final static int MAX_ASTAR_COUNTER = 50;
-
 	
 	public int rateOfFireFast = 5;
 	public int rateOfFireSlow = 10;
