@@ -60,7 +60,7 @@ public class LITCHROMOSOME {
 	}
 	
 	public static LITCHROMOSOME getChromosomeFromCsv(int lineNumber){
-		String csvFile = "children.csv";
+		String csvFile = "/Users/Luis/Documents/workspace/LITBOIZ/children.csv";
 		BufferedReader br = null;
         String line = "";
         String cvsSplitBy = ",";

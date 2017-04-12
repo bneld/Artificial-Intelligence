@@ -1,6 +1,7 @@
 package neld9968;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -330,15 +331,16 @@ public class LITBOIZ extends TeamClient {
         FileWriter fileWriter = null;
 
         try {
-            fileWriter = new FileWriter("LITCSV.csv", true);
-            fileWriter.append("\n" + Double.toString(score) + ",");
+    		//System.out.println(new File("."). getAbsolutePath() + " \n\n\n\n\n YO IM IN LITBOIZ");
+            fileWriter = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITCSV.csv", true);
+            fileWriter.append(Double.toString(score) + ",");
             fileWriter.append(Integer.toString(Mastermind.rateOfFireFast) + ",");
             fileWriter.append(Integer.toString(Mastermind.rateOfFireSlow) + ",");
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdClose) + ",");
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdMedium) + ",");
             fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdFar) + ",");
             fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold)+ ",");
-            fileWriter.append(Integer.toString(Mastermind.aStarCounter));
+            fileWriter.append(Integer.toString(Mastermind.aStarCounter) + "\n");
 
             System.out.println("CSV file was updated successfully !!!");
 
@@ -512,5 +514,4 @@ public class LITBOIZ extends TeamClient {
 		
 		return powerUps;
 	}
-
 }
