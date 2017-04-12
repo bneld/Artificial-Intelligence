@@ -587,14 +587,15 @@ public class Mastermind {
 	}
 	
 	public static LITCHROMOSOME initChromosome() {
-		File numberFile = new File("LITNUMBER.txt");
-		boolean randomize = !(new File("children.csv").exists());
+		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
+		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
 		int numberToWrite = 0;
 		if(randomize){
-			System.out.println("RANDOM");
+			System.out.println("\n\n\nNOT USING CHILDREN");
 			return new LITCHROMOSOME();	
 		}
 		else {
+			System.out.println("\n\n\nUSING CHILDREN!!!!!!");
 			try {
 				
 				if(!numberFile.exists()){
@@ -614,7 +615,7 @@ public class Mastermind {
 					}
 					reader.close();
 				}
-				FileWriter f2 = new FileWriter("LITNUMBER.txt", false);
+				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
 				f2.write(Integer.toString(numberToWrite + 1));		    
 			    f2.close();
 			    System.out.println("Taking from children.csv line " + numberToWrite);

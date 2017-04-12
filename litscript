@@ -1,11 +1,20 @@
 #!/bin/bash
 
+<<<<<<< HEAD
 echo "new directory: $DIR"
 for run in {1..10} #number of generations
 do
 	for runIn in {1..40} #number of chromosomes
 	do
 		echo "runIn number: $runIn"
+=======
+#echo "new directory: $DIR"
+for run in {1..100} #number of generations
+do
+	for runIn in {1..5} #number of chromosomes
+	do
+		echo "run number: $runIn"
+>>>>>>> d1d48530109b860379b02c76c3eb45ab5ca3aa5c
 	 	ant competeLadder &
 	 	sleep 1  # Waits 1 second
 	 	ant competeLadder &
@@ -17,6 +26,7 @@ do
 	 	ant competeLadder 
 	 	sleep 1  # Waits 1 second
 	done
+<<<<<<< HEAD
 	echo "run number: $run"
 	javac "src/neld9968/LITSELECTOR.java" "src/neld9968/LITCHROMOSOME.java" "src/neld9968/LITGENERATOR.java"
 	java -cp "/src/neld9968" LITSELECTOR
@@ -24,3 +34,21 @@ do
 	cp "src/LITCSV.csv" "src/LITCSV$run.csv"
 done
 
+=======
+	printf "\n\n\n\n\n generation number: $run \n\n\n\n"
+	rm "children.csv"
+	touch "children.csv"
+	javac -cp . "src/neld9968/LITCHROMOSOME.java" "src/neld9968/LITGENERATOR.java" "src/neld9968/LITSELECTOR.java"
+	java -cp "src/" neld9968.LITSELECTOR
+
+	rm "LITNUMBER.txt"
+	cp "LITCSV.csv" "LITCSV$run.csv"	
+	rm "LITCSV.csv"
+	touch "LITCSV.csv"
+	touch "LITNUMBER.txt"
+done
+
+#litnumber.txt not generated
+
+#/Users/Luis/Documents/workspace/LITBOIZ/
+>>>>>>> d1d48530109b860379b02c76c3eb45ab5ca3aa5c
