@@ -1,20 +1,26 @@
 #!/bin/bash
 
-#echo "new directory: $DIR"
-
-for run in {1..40}
+echo "new directory: $DIR"
+for run in {1..10} #number of generations
 do
+	for runIn in {1..40} #number of chromosomes
+	do
+		echo "runIn number: $runIn"
+	 	ant competeLadder &
+	 	sleep 1  # Waits 1 second
+	 	ant competeLadder &
+	 	sleep 1  # Waits 1 second
+	 	ant competeLadder &
+	 	sleep 1  # Waits 1 second
+	 	ant competeLadder &
+	 	sleep 1  # Waits 1 second
+	 	ant competeLadder 
+	 	sleep 1  # Waits 1 second
+	done
 	echo "run number: $run"
- 	ant competeLadder &
- 	sleep 1  # Waits 1 second
- 	ant competeLadder &
- 	sleep 1  # Waits 1 second
- 	ant competeLadder &
- 	sleep 1  # Waits 1 second
- 	ant competeLadder &
- 	sleep 1  # Waits 1 second
- 	ant competeLadder 
- 	sleep 1  # Waits 1 second
+	javac "src/neld9968/LITSELECTOR.java" "src/neld9968/LITCHROMOSOME.java" "src/neld9968/LITGENERATOR.java"
+	java -cp "/src/neld9968" LITSELECTOR
+	rm "LITNUMBER.txt"
+	cp "src/LITCSV.csv" "src/LITCSV$run.csv"
 done
-
 
