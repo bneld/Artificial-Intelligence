@@ -7,15 +7,27 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * This class implements the tournament selection function for a population.
+ * It also reads in the parent population and writes the children to a csv.
+ * @author Luis n Brian
+ *
+ */
 public class LITSELECTOR {
 	
-	public static final int NUM_SELECTIONS = 30;
-	
-	
+	/**
+	 * Driver for selection
+	 * @param args command line
+	 */
 	public static void main(String[] args){
 		selection();
 	}
 	
+	/**
+	 * Implements tournament selection
+	 * From a parent ArrayList, picks two parents, crosses them over, and mutates the result.
+	 * Repeat for however many parents there are
+	 */
 	public static void selection() {
 		ArrayList<LITCHROMOSOME> parents = readParents();
 		ArrayList<LITCHROMOSOME> children = new ArrayList<>();
@@ -23,13 +35,10 @@ public class LITSELECTOR {
 		if(parents.size() > 3){
 			for(int i = 0; i < parents.size(); i++){
 				int index1 = LITCHROMOSOME.getRandom(0, parents.size() - 2);
-				//System.out.println(index1);
 				int index2 = LITCHROMOSOME.getRandom(index1 + 2, parents.size() - 1);
-				//System.out.println(index2);
 				//find max and second max score
 				int maxIndex = index1;
 				int secondMaxIndex = index1;
-				//System.out.println("\n\n INDEX 1:" + index1 + "\n\n INDEX 2:" + index2);
 				for(int index = index1; index < index2; index++){
 					if(parents.get(index).score > parents.get(maxIndex).score){
 						maxIndex = index;
@@ -49,10 +58,12 @@ public class LITSELECTOR {
 		
 	}
 	
-	//import from csv
+	/**
+	 * Import parents from csv file
+	 * @return ArrayList of chromosomes
+	 */
 	public static ArrayList<LITCHROMOSOME> readParents(){
 		ArrayList<LITCHROMOSOME> parents = new ArrayList<>();
-		//System.out.println(new File("."). getAbsolutePath() + " \n\n\n\n\n YO IM IN LITSELECTOR");
 		String csvFile = "/Users/Luis/Documents/workspace/LITBOIZ/LITCSV.csv";
 		BufferedReader br = null;
         String line = "";
@@ -92,6 +103,11 @@ public class LITSELECTOR {
         }
         return parents;
 	}
+	
+	/**
+	 * Writes selected children to a csv
+	 * @param children list of children chromosomes
+	 */
 	public static void writeChildren(ArrayList<LITCHROMOSOME> children){
 		
 		FileWriter fileWriter = null;

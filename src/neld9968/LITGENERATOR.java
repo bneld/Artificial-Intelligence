@@ -11,13 +11,13 @@ import java.util.Random;
  */
 
 public class LITGENERATOR {
-	//create like a billion chromosomes
 	
-	public LITGENERATOR() {
-		
-	}
-	
-	//mate chromosomes
+	/**
+	 * Crosses two chromosomes
+	 * @param parent1
+	 * @param parent2
+	 * @return resulting new chromosome
+	 */
 	public static LITCHROMOSOME crossover(LITCHROMOSOME parent1, LITCHROMOSOME parent2) {
 
 		int split = LITCHROMOSOME.getRandom(0, 5);
@@ -34,6 +34,11 @@ public class LITGENERATOR {
 		return child;
 	}
 	
+	/**
+	 * Mutates the chromosome. 10% chance of mutation for each allele
+	 * @param parent the input chromosome
+	 * @return mutated chromosome
+	 */
 	public static LITCHROMOSOME mutate(LITCHROMOSOME parent) {
 		
 		Random r = new Random();
@@ -41,7 +46,6 @@ public class LITGENERATOR {
 		
 		for(int i = 0; i < 7; i++) {
 			double probability = r.nextDouble();
-			//System.out.println("Probability: " + probability);
 			
 			if(probability <= 0.10) {
 				//10% chance to perform mutation 
@@ -88,9 +92,5 @@ public class LITGENERATOR {
 				,attribs[1],attribs[2],attribs[3],attribs[4],attribs[5],attribs[6]);
 		return child;
 	}
-	
-//	public static void main(String[] args){
-//
-//		callBriansMethod();
-//	}
+
 }

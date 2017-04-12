@@ -66,7 +66,10 @@ public class Mastermind {
 	public static AbstractObject currentTarget;
 	
 	//chromosome parameters
-	static LITCHROMOSOME currentChromosome = initChromosome();
+	//static LITCHROMOSOME currentChromosome = initChromosome();
+	
+	//use genetic algorithm best parameters
+	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME(17, 66, 43, 185, 317, 136, 10);
 
 	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
 	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
@@ -76,12 +79,6 @@ public class Mastermind {
 	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
 	public static int aStarCounter = currentChromosome.aStarCounter;
 	
-	
-	public static void main(String[] args){
-		for(int i = 0; i < 10; i++){
-			initChromosome();
-		}
-	}
 	/**
 	 * Gets the action for the ship
 	 * @return currentAction
@@ -586,20 +583,21 @@ public class Mastermind {
 		return reversedStack;
 	}
 	
+	/** Used for genetic algorithm to initialize the chromosome's parameters for the agent.
+	 * Knows if it should use random values for first gen or take values from parent generation.
+	 * 
+	 */
 	public static LITCHROMOSOME initChromosome() {
 		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
 		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
 		int numberToWrite = 0;
 		if(randomize){
-			System.out.println("\n\n\nNOT USING CHILDREN");
 			return new LITCHROMOSOME();	
 		}
 		else {
-			System.out.println("\n\n\nUSING CHILDREN!!!!!!");
 			try {
 				
 				if(!numberFile.exists()){
-					System.out.println("File not exist");
 					numberToWrite = 0;
 				}
 				else {
@@ -618,10 +616,8 @@ public class Mastermind {
 				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
 				f2.write(Integer.toString(numberToWrite + 1));		    
 			    f2.close();
-			    System.out.println("Taking from children.csv line " + numberToWrite);
 			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
 			} catch (Exception e) {
-	            System.out.println("Error when reading/writing file");
 	            e.printStackTrace();
 	        }
 			return null;

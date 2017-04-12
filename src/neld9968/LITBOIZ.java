@@ -315,23 +315,20 @@ public class LITBOIZ extends TeamClient {
 		asteroidCollectorID = null;
 	}
 
+	//called when simulator shuts down
 	@Override
 	public void shutDown(Toroidal2DPhysics space) {
 		// write score & alleles to file 
 		double score = 0;
-		System.out.println("yo its lit i think we won");
-		System.out.println(Mastermind.rateOfFireFast);
 		for (ImmutableTeamInfo team : space.getTeamInfo()){
 			if (team.getTeamName().equals("LITBOIZ")){
 				score = team.getScore();
 			}
 		}
-		System.out.println(score);
 
         FileWriter fileWriter = null;
 
         try {
-    		//System.out.println(new File("."). getAbsolutePath() + " \n\n\n\n\n YO IM IN LITBOIZ");
             fileWriter = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITCSV.csv", true);
             fileWriter.append(Double.toString(score) + ",");
             fileWriter.append(Integer.toString(Mastermind.rateOfFireFast) + ",");
@@ -342,7 +339,7 @@ public class LITBOIZ extends TeamClient {
             fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold)+ ",");
             fileWriter.append(Integer.toString(Mastermind.aStarCounter) + "\n");
 
-            System.out.println("CSV file was updated successfully !!!");
+            //System.out.println("CSV file was updated successfully !!!");
 
         } catch (Exception e) {
             System.out.println("Error when writing to file");
