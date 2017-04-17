@@ -11,6 +11,13 @@ import spacesettlers.utilities.Position;
 import spacesettlers.utilities.Vector2D;
 import spacesettlers.objects.weapons.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -44,6 +51,7 @@ public class Mastermind {
 	private static double oldShipEnergy = Double.MIN_VALUE;
 	// counter that controls fire rate of agent
 	private static int fireTimer;
+	
 	private static Position oldEnemyPosition;
 	public static Ship ship;
 	public static int TIMEOUT = 0;
@@ -56,6 +64,20 @@ public class Mastermind {
 	public static int aStarEnemyCounter = 0;
 	public static int aStarBeaconCounter = 0;
 	public static AbstractObject currentTarget;
+	
+	//chromosome parameters
+	//static LITCHROMOSOME currentChromosome = initChromosome();
+	
+	//use genetic algorithm best parameters
+	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME(17, 66, 43, 185, 317, 136, 10);
+
+	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
+	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
+	public static int enemyDistanceThresholdClose = currentChromosome.enemyDistanceThresholdClose;
+	public static int enemyDistanceThresholdMedium = currentChromosome.enemyDistanceThresholdMedium;
+	public static int enemyDistanceThresholdFar = currentChromosome.enemyDistanceThresholdFar;
+	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
+	public static int aStarCounter = currentChromosome.aStarCounter;
 	
 	/**
 	 * Gets the action for the ship
@@ -559,5 +581,46 @@ public class Mastermind {
 			reversedStack.push(stack.pop());
 		}
 		return reversedStack;
+	}
+	
+	/** Used for genetic algorithm to initialize the chromosome's parameters for the agent.
+	 * Knows if it should use random values for first gen or take values from parent generation.
+	 * 
+	 */
+	public static LITCHROMOSOME initChromosome() {
+		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
+		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
+		int numberToWrite = 0;
+		if(randomize){
+			return new LITCHROMOSOME();	
+		}
+		else {
+			try {
+				
+				if(!numberFile.exists()){
+					numberToWrite = 0;
+				}
+				else {
+					//read number line from LITNUMBER.txt
+					FileInputStream fileInStream = new FileInputStream(numberFile);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
+					String line = reader.readLine();
+					
+					if(line != null && !line.isEmpty()){
+						numberToWrite = Integer.parseInt(line);
+					} else {
+						numberToWrite = 0;
+					}
+					reader.close();
+				}
+				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
+				f2.write(Integer.toString(numberToWrite + 1));		    
+			    f2.close();
+			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
+			} catch (Exception e) {
+	            e.printStackTrace();
+	        }
+			return null;
+		}
 	}
 }

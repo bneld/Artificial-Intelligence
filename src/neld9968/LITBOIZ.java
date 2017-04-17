@@ -1,6 +1,9 @@
 package neld9968;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +22,8 @@ import spacesettlers.objects.resources.*;
 import spacesettlers.objects.weapons.EMP;
 import spacesettlers.objects.weapons.Missile;
 import spacesettlers.clients.TeamClient;
+import spacesettlers.clients.ImmutableTeamInfo;
+import spacesettlers.clients.Team;
 import spacesettlers.graphics.CircleGraphics;
 import spacesettlers.graphics.LineGraphics;
 import spacesettlers.graphics.SpacewarGraphics;
@@ -208,11 +213,11 @@ public class LITBOIZ extends TeamClient {
 		else {
 	        Position enemyPos = currentEnemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
-	        System.out.println(distanceToEnemy);
+//	        System.out.println(distanceToEnemy);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	        }
-	        else if(distanceToEnemy < 100){ //slow down and directly target enemy
+	        else if(distanceToEnemy < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	            targetedPosition = null;
 	        }
@@ -266,7 +271,7 @@ public class LITBOIZ extends TeamClient {
 		Position target;
 		
 		//will calculate A* when counter is 10 or stack is empty
-		if(counter == 10 || Mastermind.stack.isEmpty()){
+		if(counter == Mastermind.aStarCounter || Mastermind.stack.isEmpty()){
 			testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
 			Mastermind.stack =  Mastermind.aStar(currentPosition, initialTarget, testPositions, space);
 			
@@ -284,7 +289,7 @@ public class LITBOIZ extends TeamClient {
 		//if a Node is on the stack, go to that Position
 		else {
 			//if ship is approaching current target
-    		if(space.findShortestDistance(currentPosition, Mastermind.aStarCurrentPosition) < 40){
+    		if(space.findShortestDistance(currentPosition, Mastermind.aStarCurrentPosition) < Mastermind.aStarDistanceThreshold){
     			target = Mastermind.stack.pop().position;
     			Mastermind.aStarCurrentPosition = target;
     		} else { //resume course to Node on top of A* stack
@@ -310,8 +315,48 @@ public class LITBOIZ extends TeamClient {
 		asteroidCollectorID = null;
 	}
 
+	//called when simulator shuts down
 	@Override
 	public void shutDown(Toroidal2DPhysics space) {
+		// write score & alleles to file 
+		double score = 0;
+		for (ImmutableTeamInfo team : space.getTeamInfo()){
+			if (team.getTeamName().equals("LITBOIZ")){
+				score = team.getScore();
+			}
+		}
+
+        FileWriter fileWriter = null;
+
+        try {
+            fileWriter = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITCSV.csv", true);
+            fileWriter.append(Double.toString(score) + ",");
+            fileWriter.append(Integer.toString(Mastermind.rateOfFireFast) + ",");
+            fileWriter.append(Integer.toString(Mastermind.rateOfFireSlow) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdClose) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdMedium) + ",");
+            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdFar) + ",");
+            fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold)+ ",");
+            fileWriter.append(Integer.toString(Mastermind.aStarCounter) + "\n");
+
+            //System.out.println("CSV file was updated successfully !!!");
+
+        } catch (Exception e) {
+            System.out.println("Error when writing to file");
+            e.printStackTrace();
+        } finally {
+
+            try {
+                fileWriter.flush();
+                fileWriter.close();
+
+            } catch (IOException e) {
+
+                System.out.println("Error when closing file writer");
+                e.printStackTrace();
+            }
+
+        }
 
 	}
 
@@ -447,15 +492,17 @@ public class LITBOIZ extends TeamClient {
 				double xVelocityDiff = Math.abs(enemy.getPosition().getxVelocity() - ourShip.getPosition().getxVelocity());
 				double yVelocityDiff = Math.abs(enemy.getPosition().getyVelocity() - ourShip.getPosition().getyVelocity());
 				if ( xVelocityDiff <= 10 && yVelocityDiff <= 10) {
-			        if(Mastermind.getFireTimer() == 5){
+			        if(Mastermind.getFireTimer() == Mastermind.rateOfFireFast){
 				        powerUps.put(actionableObject.getId(), powerup);
 				        Mastermind.clearFireTimer(); //reset fire rate counter)	
 			        }
 			    }
 				//fire certain rate based on distance
-				if(distanceToEnemy <= 40
-						|| (distanceToEnemy <= 100 && Mastermind.getFireTimer() == 5)
-						|| (distanceToEnemy <= 200 && Mastermind.getFireTimer() == 10)){
+				if(distanceToEnemy <= Mastermind.enemyDistanceThresholdClose
+						|| (distanceToEnemy <= Mastermind.enemyDistanceThresholdMedium 
+							&& Mastermind.getFireTimer() == Mastermind.rateOfFireFast)
+						|| (distanceToEnemy <= Mastermind.enemyDistanceThresholdFar 
+							&& Mastermind.getFireTimer() == Mastermind.rateOfFireSlow)){
 					powerUps.put(actionableObject.getId(), powerup);
 					Mastermind.clearFireTimer(); //reset fire rate counter
 				}
@@ -464,5 +511,4 @@ public class LITBOIZ extends TeamClient {
 		
 		return powerUps;
 	}
-
 }
