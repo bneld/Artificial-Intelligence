@@ -44,7 +44,12 @@ abstract public class TeamClient {
 	/**
 	 * Save the random number generator for future use
 	 */
-	Random random;
+	protected Random random;
+	
+	/**
+	 * Maximum number of ships (copy of what is stored in Team, since the individual clients can't access Team)
+	 */
+	int maxNumberShips;
 	
 	/**
 	 * Maximum number of ships (copy of what is stored in Team, since the individual clients can't access Team)
@@ -56,6 +61,10 @@ abstract public class TeamClient {
 	 */
 	AffineTransform mouseTransform;
 	
+	/**
+	 * Sets the random number generator to the global one (for repeatability)
+	 * @param random
+	 */
 	public void setRandom(Random random) {
 		this.random = random;
 	}
