@@ -32,19 +32,33 @@
 		     which bound where the ships and the base will be created. -->
  		<!-- The there are only two teams for CTF and the heuristic is a Flag Collector team (similar to beacons) -->
 		<HighLevelTeamConfig>
-			<teamName>Team1</teamName>
+			<teamName>#LITBOIZ (Luis n Brian)</teamName>
+			<configFile>spacesettlersinit.xml</configFile>
+		</HighLevelTeamConfig>
+		<HighLevelTeamConfig>
+			<teamName>Aggressive</teamName>
 			<configFile>aggressive-flag3ships-clientinit.xml</configFile>
 		</HighLevelTeamConfig>
 		<HighLevelTeamConfig>
-			<teamName>Team2</teamName>
+			<teamName>Passive</teamName>
 			<configFile>passive-flag3ships-clientinit.xml</configFile>
 		</HighLevelTeamConfig>		
 	</teams>
 
 	<!-- Each team needs a base.  Optionally, you can initialize the location of the base -->
 	<bases>
+	    <BaseConfig>
+			<teamName>#LITBOIZ (Luis n Brian)</teamName>
+			<fixedLocation>true</fixedLocation>
+			<x>800</x>
+			<y>640</y>
+			<boundingBoxULX>550</boundingBoxULX>
+			<boundingBoxULY>340</boundingBoxULY>
+			<boundingBoxLRX>650</boundingBoxLRX>
+			<boundingBoxLRY>740</boundingBoxLRY>
+		</BaseConfig>
 		<BaseConfig>
-			<teamName>Team1</teamName>
+			<teamName>Aggressive</teamName>
 			<fixedLocation>true</fixedLocation>
 			<x>700</x>
 			<y>540</y>
@@ -54,7 +68,7 @@
 			<boundingBoxLRY>740</boundingBoxLRY>
 		</BaseConfig>
 		<BaseConfig>
-			<teamName>Team2</teamName>
+			<teamName>Passive</teamName>
 			<fixedLocation>true</fixedLocation>
 			<x>900</x>
 			<y>540</y>
@@ -66,8 +80,19 @@
 	</bases>
 	
 	<flags>
+	    <FlagConfig>
+			<teamName>#LITBOIZ (Luis n Brian)</teamName>
+			<startX>
+				<int>400</int>
+				<int>425</int>
+			</startX>
+			<startY>
+				<int>250</int>
+				<int>800</int>
+			</startY>
+		</FlagConfig>
 		<FlagConfig>
-			<teamName>Team1</teamName>
+			<teamName>Aggressive</teamName>
 			<startX>
 				<int>350</int>
 				<int>375</int>
@@ -78,7 +103,7 @@
 			</startY>
 		</FlagConfig>
 		<FlagConfig>
-			<teamName>Team2</teamName>
+			<teamName>Passive</teamName>
 			<startX>
 				<int>1250</int>
 				<int>1250</int>

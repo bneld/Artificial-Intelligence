@@ -52,11 +52,6 @@ abstract public class TeamClient {
 	int maxNumberShips;
 	
 	/**
-	 * Maximum number of ships (copy of what is stored in Team, since the individual clients can't access Team)
-	 */
-	int maxNumberShips;
-	
-	/**
 	 * Transformation for mouse clicks
 	 */
 	AffineTransform mouseTransform;
