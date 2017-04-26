@@ -43,6 +43,7 @@ public class LITBOIZ extends TeamClient {
 	Ship ourShip;
 	Ship currentEnemy;
 	Ship oldEnemy;
+	Flag currentFlag;
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
@@ -52,6 +53,7 @@ public class LITBOIZ extends TeamClient {
 	Toroidal2DPhysics space;
 //	public static Set<AbstractObject> testSet;
 //	public static ArrayList<Position> testPositions = new ArrayList<>();
+	Map<UUID, Mastermind> shipToMastermindMap;
 	
 
 	/**
@@ -69,10 +71,11 @@ public class LITBOIZ extends TeamClient {
 			if (actionable instanceof Ship) {
 				Ship ship = (Ship) actionable;
 				ourShip = ship;
-				if(Mastermind.ship == null) Mastermind.ship = ship;
+				//TODO is setting Mastermind.ship working correctly with multiple ships?
+				Mastermind.ship = ship;
 				
 				//add actions
-				AbstractAction action = getWeaponShipAction(space, ship);
+				AbstractAction action = getFlagShipAction(space, ship);
 				actions.put(ship.getId(), action);
 				
 			} else {
@@ -148,6 +151,43 @@ public class LITBOIZ extends TeamClient {
 		// otherwise aim for the nearest enemy ship
 		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)) {
 			newAction = getChaseAction(space, ship);
+		} 
+		else {
+			newAction = ship.getCurrentAction();
+		}	
+		
+		Mastermind.setOldShipEnergy(ship.getEnergy());
+		return newAction;
+	}
+	/**
+	 * Gets the action for the flag runner
+	 * @param space the current space environment
+	 * @param ship our spacecraft that the simulator passes in
+	 * @return newAction 
+	 */
+	private AbstractAction getFlagShipAction(Toroidal2DPhysics space,
+			Ship ship) {
+		AbstractAction current = ship.getCurrentAction();
+		//Mastermind.incFireTimer(); //TODO
+		AbstractAction newAction = null;
+		
+		//if ship is dead or idle, set a new action
+		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_BEACON))){
+			
+			//clear graph and movement stack
+			edges = null;
+			nodes = null;
+			Mastermind.stack.clear();
+			newAction = getFlagAction(space, ship);
+		}
+		// aim for a beacon if there isn't enough energy
+		else if (ship.getEnergy() < 1000) { //TODO
+			newAction = getBeaconAction(space, ship);
+		}
+
+		// otherwise aim for the nearest flag
+		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_FLAG)) {
+			newAction = getFlagAction(space, ship);
 		} 
 		else {
 			newAction = ship.getCurrentAction();
@@ -258,6 +298,36 @@ public class LITBOIZ extends TeamClient {
 		return newAction;
 	}
 	
+	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
+		Position currentPosition = ship.getPosition();
+		currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
+		Mastermind.currentTarget = currentFlag;
+		Mastermind.setCurrentAction(Mastermind.ACTION_FIND_FLAG);
+
+		AbstractAction newAction = null;
+
+		if (currentFlag == null) {
+			//if no flag, go to beacon
+			newAction = getBeaconAction(space, ship);	
+		} 
+		else {
+	        Position flagPos = currentFlag.getPosition();
+	        double distanceToFlag = space.findShortestDistance(flagPos, currentPosition);
+	        if(Math.abs(flagPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
+	        }
+	        else if(distanceToFlag < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
+	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
+	            targetedPosition = null;
+	        }
+	        else{ 
+	        	Position target = getAStarPosition(space, ship, currentPosition, flagPos, ++Mastermind.aStarEnemyCounter);
+	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
+	        }
+		}
+		return newAction;
+	}
+	
 	/**
 	 * Gets the action that will deal with the beacon 
 	 * @param space the current space environment
@@ -311,6 +381,7 @@ public class LITBOIZ extends TeamClient {
 	@Override
 	public void initialize(Toroidal2DPhysics space) {
 		this.space = space;
+		shipToMastermindMap = new HashMap<>();
 		Mastermind.stack = new Stack<>();
 		asteroidCollectorID = null;
 	}

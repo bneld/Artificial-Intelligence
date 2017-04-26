@@ -5,6 +5,7 @@ import spacesettlers.objects.Asteroid;
 //import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Base;
 import spacesettlers.objects.Beacon;
+import spacesettlers.objects.Flag;
 import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.Position;
@@ -44,6 +45,7 @@ public class Mastermind {
 	public final static String ACTION_CHASE_ENEMY = "Chase enemy";
 	public final static String ACTION_FIND_RESOURCE = "Find resource";
 	public final static String ACTION_FIND_BEACON = "Find beacon";
+	public final static String ACTION_FIND_FLAG = "Find flag";
 	public final static String ACTION_EVADE = "Evade";
 	public final static String ACTION_GO_TO_BASE = "Go to base";
 	private static String currentAction = "";
@@ -61,6 +63,8 @@ public class Mastermind {
 	// degrees in radian form of which to turn
 	public static final double DEGREES_15 = 0.261799;
 	public static final double DEGREES_25 = 0.436332;
+	public static final double[] DEGREES_45_TO_85_BY_FIVE = {0.785398, 0.872665, 0.959931, 1.0472, 1.13446
+	                                                         , 1.22173, 1.309, 1.39626, 1.48353};
 	public static int aStarEnemyCounter = 0;
 	public static int aStarBeaconCounter = 0;
 	public static AbstractObject currentTarget;
@@ -209,6 +213,36 @@ public class Mastermind {
 		
 		return nearestShip;
 	}
+	
+	/**
+	 * Find the nearest flag on another team and aim for it
+	 * @param space
+	 * @param ship
+	 * @return flag
+	 */
+	public static Flag pickNearestEnemyFlag(Toroidal2DPhysics space, Ship ship) {
+		double minDistance = Double.POSITIVE_INFINITY;
+		Flag nearestFlag = null;
+		
+		// loop through all ships
+		for (Flag flag : space.getFlags()) {
+			
+			// don't aim for our own team (or ourself)
+			//also only aim for flags that are not taken yet
+			if (flag.getTeamName().equals(ship.getTeamName())
+					|| flag.isBeingCarried()) {
+				continue;
+			}
+			// find shortest distance of ships
+			double distance = space.findShortestDistance(ship.getPosition(), flag.getPosition());
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestFlag = flag;
+			}
+		}
+		
+		return nearestFlag;
+	}
     
 	/**
 	 * Find the midpoint of two objects
@@ -243,6 +277,26 @@ public class Mastermind {
     	//translate from origin back to start
     	double rotatedFinalX = rotatedOriginX + start.getX();
     	double rotatedFinalY = rotatedOriginY + start.getY();
+    	
+    	return new Position(rotatedFinalX, rotatedFinalY);
+    }
+    
+    /** 
+     * Method that returns a point along the midpoint axis correspond to specified angle
+     * @param space - the simulator environment
+     * @param start - the position of your ship
+     * @param objective - position of destination
+     * @param angle - angle of alternate path in radians
+     * @return altered position
+     */
+    public static Position alterPathAlongMidpointAxis(Toroidal2DPhysics space, Position start, Position objective, double angle){
+    	
+    	double dist = space.findShortestDistance(start, objective);
+    	
+    	double deltaX = dist / Math.tan(angle);
+    	
+    	double rotatedFinalX = deltaX + start.getX();
+    	double rotatedFinalY = dist + start.getY();
     	
     	return new Position(rotatedFinalX, rotatedFinalY);
     }
@@ -363,11 +417,9 @@ public class Mastermind {
 		
 		// add start or target to points if not already there
 		if(!startExists) {
-//			System.out.println("start is  not here");
 			points.add(start);
 		}
 		if(!targetExists) {
-//			System.out.println("target is not here");
 			points.add(target);
 		}
 
@@ -529,8 +581,20 @@ public class Mastermind {
 		} 
 	
 		//recursion is limited to 5 times
-		if (counter > 4) { 
-			return null;
+		//if no path is found after 5 recursions, increase angle of search
+		if (counter > 4) {
+			//TODO
+			ArrayList<Position> extraPoints = new ArrayList<>();
+			for(double angle : DEGREES_45_TO_85_BY_FIVE){
+				//may need to scale angles depending on distance to target
+				Position pos = alterPathAlongMidpointAxis(space, start, findMidpoint(start, end), angle);
+				if(isPathClearOfObstructions(start, pos, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
+					extraPoints.add(pos);
+					break;
+				}
+				
+			}
+			return extraPoints;
 		}
 		
 		ArrayList<Position> result = new ArrayList<>();
