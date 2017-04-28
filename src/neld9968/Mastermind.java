@@ -41,33 +41,36 @@ import neld9968.LitGraph.Node;
 public class Mastermind {
 
 	//flags for different actions
-	public final static String ACTION_DO_NOTHING = "Do nothing";
-	public final static String ACTION_CHASE_ENEMY = "Chase enemy";
-	public final static String ACTION_FIND_RESOURCE = "Find resource";
-	public final static String ACTION_FIND_BEACON = "Find beacon";
-	public final static String ACTION_FIND_FLAG = "Find flag";
-	public final static String ACTION_EVADE = "Evade";
-	public final static String ACTION_GO_TO_BASE = "Go to base";
-	private static String currentAction = "";
-	// saves enery of ship at previous state in time
-	private static double oldShipEnergy = Double.MIN_VALUE;
-	// counter that controls fire rate of agent
-	private static int fireTimer;
+	public final String ACTION_DO_NOTHING = "Do nothing";
+	public final String ACTION_CHASE_ENEMY = "Chase enemy";
+	public final String ACTION_FIND_RESOURCE = "Find resource";
+	public final String ACTION_FIND_BEACON = "Find beacon";
+	public final String ACTION_FIND_FLAG = "Find flag";
+	public final String ACTION_EVADE = "Evade";
+	public final String ACTION_GO_TO_BASE = "Go to base";
 	
-	private static Position oldEnemyPosition;
-	public static Ship ship;
-	public static int TIMEOUT = 0;
-	// stack that holds each node in graph
-	public static Stack<Node> stack;
-	public static Position aStarCurrentPosition;
 	// degrees in radian form of which to turn
 	public static final double DEGREES_15 = 0.261799;
 	public static final double DEGREES_25 = 0.436332;
 	public static final double[] DEGREES_45_TO_85_BY_FIVE = {0.785398, 0.872665, 0.959931, 1.0472, 1.13446
-	                                                         , 1.22173, 1.309, 1.39626, 1.48353};
-	public static int aStarEnemyCounter = 0;
-	public static int aStarBeaconCounter = 0;
-	public static AbstractObject currentTarget;
+		                                                         , 1.22173, 1.309, 1.39626, 1.48353};
+	private String currentAction = "";
+	// saves enery of ship at previous state in time
+	private double oldShipEnergy = Double.MIN_VALUE;
+	// counter that controls fire rate of agent
+	private int fireTimer;
+	
+	private Position oldEnemyPosition;
+	public Ship ship;
+	public int timeout = 0;
+	// stack that holds each node in graph
+	public Stack<Node> stack;
+	public Position aStarCurrentPosition;
+	
+	public int aStarEnemyCounter = 0;
+	public int aStarBeaconCounter = 0;
+	public int aStarBaseCounter = 0;
+	public AbstractObject currentTarget;
 	
 	//chromosome parameters
 	//static LITCHROMOSOME currentChromosome = initChromosome();
@@ -83,11 +86,15 @@ public class Mastermind {
 	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
 	public static int aStarCounter = currentChromosome.aStarCounter;
 	
+	public Mastermind(){
+		stack = new Stack<>();
+	}
+	
 	/**
 	 * Gets the action for the ship
 	 * @return currentAction
 	 */
-	public static String getCurrentAction() {
+	public String getCurrentAction() {
 		return currentAction;
 	}
 	
@@ -95,7 +102,7 @@ public class Mastermind {
 	 * Sets the action for the ship
 	 * @param action
 	 */
-	public static void setCurrentAction(String action) {
+	public void setCurrentAction(String action) {
 		currentAction = action;
 	}
 	
@@ -103,12 +110,12 @@ public class Mastermind {
 	 * Gets the energy of the ship at the last time interval.
 	 * @return oldShipEnergy 
 	 */
-	public static double getOldShipEnergy() {
+	public double getOldShipEnergy() {
 		return oldShipEnergy;
 	}
 	
 	/**Sets the energy of the ship at the last time interval.*/ 
-	public static void setOldShipEnergy(double energy) {
+	public void setOldShipEnergy(double energy) {
 		oldShipEnergy = energy;
 	}
 	
@@ -116,24 +123,24 @@ public class Mastermind {
 	 * Gets fire timer to regulate fire rate.
 	 * @return fireTimer 
 	 */
-	public static int getFireTimer() {
+	public int getFireTimer() {
 		return fireTimer;
 	}
 	
 	/**Sets the fire timer
 	 * @param time counter for fire rate
 	 */
-	public static void setFireTimer(int time) {
+	public void setFireTimer(int time) {
 		fireTimer = time;
 	}
 	
 	/**Increments the fire timer */
-	public static void incFireTimer() {
+	public void incFireTimer() {
 		fireTimer++;
 	}
 	
 	/**Clears the fire timer*/
-	public static void clearFireTimer() {
+	public void clearFireTimer() {
 		fireTimer = 0;
 	}
 	
@@ -332,7 +339,7 @@ public class Mastermind {
 	 * @param excludeObject
 	 * @return set
 	 */
-    public static Set<AbstractObject> getAllObstructionsBetweenAbstractObjects(Toroidal2DPhysics space, AbstractObject excludeObject){
+    public Set<AbstractObject> getAllObstructionsBetweenAbstractObjects(Toroidal2DPhysics space, AbstractObject excludeObject){
     	Set<AbstractObject> set = space.getAllObjects();
 
         // iterate through all objects and remove objects we don't consider an obstruction
@@ -344,7 +351,7 @@ public class Mastermind {
         		|| (obj instanceof Missile)
         		|| (obj instanceof EMP)
         		|| (obj.getId().compareTo(excludeObject.getId()) == 0) // remove target
-        		|| (obj.getId().compareTo(Mastermind.ship.getId()) == 0)){ // remove our ship
+        		|| (obj.getId().compareTo(this.ship.getId()) == 0)){ // remove our ship
     			iterator.remove();
     		}
         }
@@ -377,7 +384,7 @@ public class Mastermind {
 	 * returns old enemy position
 	 * @return oldEnemyPosition 
 	 */
-	public static Position getOldEnemyPosition() {
+	public Position getOldEnemyPosition() {
 		return oldEnemyPosition;
 	}
 
@@ -385,8 +392,8 @@ public class Mastermind {
 	 * sets old enemy position
 	 * @param oldEnemyPosition
 	 */
-	public static void setOldEnemyPosition(Position oldEnemyPosition) {
-		Mastermind.oldEnemyPosition = oldEnemyPosition;
+	public void setOldEnemyPosition(Position oldEnemyPosition) {
+		this.oldEnemyPosition = oldEnemyPosition;
 	}
 	
 	/**
@@ -397,7 +404,7 @@ public class Mastermind {
 	 * @param space simulator object
 	 * @return oldEnemyPosition 
 	 */
-	public static Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
+	public Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
 		
 		// create stack and flags for first initialization 
 		Stack<Node> parents = new Stack<>();
@@ -424,7 +431,7 @@ public class Mastermind {
 		}
 
 		// create new graph
-		LitGraph graph = new LitGraph(start, target, points, space);
+		LitGraph graph = new LitGraph(this, start, target, points, space);
 		
 		//set of visited nodes
 		Set<Node> closed = new HashSet<>();
@@ -456,11 +463,11 @@ public class Mastermind {
 		//loop
 		while(true) {
 			//increment timeout
-			TIMEOUT++;
+			timeout++;
 			
 			//check for timeout
-			if (TIMEOUT > 1000) { 
-				TIMEOUT = 0;
+			if (timeout > 1000) { 
+				timeout = 0;
 				return checkStartNode(reverseStack(parents), start);
 			}
 			
@@ -573,7 +580,7 @@ public class Mastermind {
 	 * @param counter for exit condition 
 	 * @return result containing alternate points 
 	 */
-	public static ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end, int counter){
+	public ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end, int counter){
 		
 		//check if points are equal
 		if(start.getX() == end.getX() && start.getY() == end.getY()){
@@ -585,21 +592,28 @@ public class Mastermind {
 		if (counter > 4) {
 			//TODO
 			ArrayList<Position> extraPoints = new ArrayList<>();
-			for(double angle : DEGREES_45_TO_85_BY_FIVE){
-				//may need to scale angles depending on distance to target
-				Position pos = alterPathAlongMidpointAxis(space, start, findMidpoint(start, end), angle);
-				if(isPathClearOfObstructions(start, pos, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
-					extraPoints.add(pos);
-					break;
-				}
-				
+			//TODO
+			for(double i = 100; i < 500; i+= 100){
+				Position[] pos = getPerpendicularPositions(start, end, i);
+				extraPoints.add(pos[0]);
+				extraPoints.add(pos[1]);
 			}
+			
+//			for(double angle : DEGREES_45_TO_85_BY_FIVE){
+//				//may need to scale angles depending on distance to target
+//				Position pos = alterPathAlongMidpointAxis(space, start, findMidpoint(start, end), angle);
+//				if(isPathClearOfObstructions(start, pos, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
+//					extraPoints.add(pos);
+//					break;
+//				}
+//				
+//			}
 			return extraPoints;
 		}
 		
 		ArrayList<Position> result = new ArrayList<>();
 		// check if path is clear 
-		if(isPathClearOfObstructions(start, end, Mastermind.getAllObstructionsBetweenAbstractObjects(space, Mastermind.currentTarget), ship.getRadius(), space)){
+		if(isPathClearOfObstructions(start, end, getAllObstructionsBetweenAbstractObjects(space, this.currentTarget), ship.getRadius(), space)){
 			//do nothing
 		} else {
 			
@@ -631,6 +645,23 @@ public class Mastermind {
 			}
 		}
 		return result;
+	}
+	
+	public static Position[] getPerpendicularPositions(Position start, Position end, double distanceFromTarget){
+		double vectorX = end.getX() - start.getX();
+		double vectorY = end.getY() - start.getY();
+		
+		//find perpendicular vector
+		double perpX = 1;
+		double perpY = (0 - perpX*vectorX) / vectorY;
+		double magnitude = Math.sqrt(Math.pow(perpX, 2) + Math.pow(perpY, 2));
+		//normalize 
+		perpX /= magnitude;
+		perpY /= magnitude;
+		//scale up
+		Position p1 = new Position(end.getX() + distanceFromTarget*perpX, end.getY() + distanceFromTarget*perpY);
+		Position p2 = new Position(end.getX() - distanceFromTarget*perpX, end.getY() - distanceFromTarget*perpY);
+		return new Position[]{p1, p2};
 	}
 	
 	/**

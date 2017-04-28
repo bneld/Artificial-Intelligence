@@ -38,7 +38,7 @@ public class LitGraph {
 	 * @param points all the points between the start and target
 	 * @param space the simulator 
 	 */
-	public LitGraph(Position start, Position target, List<Position> points, Toroidal2DPhysics space){
+	public LitGraph(Mastermind master, Position start, Position target, List<Position> points, Toroidal2DPhysics space){
 		nodes = new ArrayList<>();
 		edges = new ArrayList<>();
 		map = new HashMap<>();
@@ -54,7 +54,7 @@ public class LitGraph {
 		for(Position current : points){
 			for(Position other : points){
 				if(!other.equals(current)){ //don't add edge to itself
-					if(space.isPathClearOfObstructions(current, other, Mastermind.getAllObstructionsBetweenAbstractObjects(space, Mastermind.currentTarget), Ship.SHIP_RADIUS)){
+					if(space.isPathClearOfObstructions(current, other, master.getAllObstructionsBetweenAbstractObjects(space, master.currentTarget), Ship.SHIP_RADIUS)){
 						addEdge(map.get(current), map.get(other), space.findShortestDistance(current, other));
 					}
 				}

@@ -54,6 +54,7 @@ public class LITBOIZ extends TeamClient {
 //	public static Set<AbstractObject> testSet;
 //	public static ArrayList<Position> testPositions = new ArrayList<>();
 	Map<UUID, Mastermind> shipToMastermindMap;
+	Mastermind master;
 	
 
 	/**
@@ -70,9 +71,15 @@ public class LITBOIZ extends TeamClient {
 		for (AbstractObject actionable :  actionableObjects) {
 			if (actionable instanceof Ship) {
 				Ship ship = (Ship) actionable;
+				
+				//add to map if not already there
+				if(!shipToMastermindMap.containsKey(ship.getId())){
+					shipToMastermindMap.put(ship.getId(), new Mastermind());
+				}
+				master = shipToMastermindMap.get(ship.getId());
+				
 				ourShip = ship;
-				//TODO is setting Mastermind.ship working correctly with multiple ships?
-				Mastermind.ship = ship;
+				master.ship = ship;
 				
 				//add actions
 				AbstractAction action = getFlagShipAction(space, ship);
@@ -95,68 +102,32 @@ public class LITBOIZ extends TeamClient {
 	private AbstractAction getWeaponShipAction(Toroidal2DPhysics space,
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
-		Mastermind.incFireTimer();
+		master.incFireTimer();
 		AbstractAction newAction = null;
 		
 		//if ship is dead or idle, set a new action
-		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_BEACON))){
+		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && master.getCurrentAction().equals(master.ACTION_FIND_BEACON))){
 			
 			//clear graph and movement stack
 			edges = null;
 			nodes = null;
-			Mastermind.stack.clear();
+			master.stack.clear();
 			newAction = getChaseAction(space, ship);
 		}
 		// aim for a beacon if there isn't enough energy
 		else if (ship.getEnergy() < 1000) {
 			newAction = getBeaconAction(space, ship);
 		}
-		
-		//if ship is damaged, try evasive action
-//		else if(ship.getEnergy() < Mastermind.getOldShipEnergy()){
-//			System.out.println("Evade");
-//			
-//			//if ship is already evading, stay on evade course
-//			if(Mastermind.getCurrentAction().equals(Mastermind.ACTION_EVADE)){
-//				if(ship.getCurrentAction().isMovementFinished(space)){
-//					//stop evading
-//					newAction = getChaseAction(space, ship);
-//				}
-//				else {
-//					//continue evasion path
-//					newAction = ship.getCurrentAction();
-//				}
-//			}
-//			else {
-//				Mastermind.setCurrentAction(Mastermind.ACTION_EVADE);
-//				Ship enemy = Mastermind.pickNearestEnemyShip(space, ship);
-//				if(space.findShortestDistance(ship.getPosition(), enemy.getPosition()) < 300){
-//					Random rand = new Random();
-//					Position newPos = space.getRandomFreeLocationInRegion(rand, ship.getRadius(), (int)ship.getPosition().getX(), (int)ship.getPosition().getY(), 100);
-//					newAction = new LITBOIZMOVEACTION(space, ship.getPosition(), newPos);
-////					System.out.println("Evade");
-//				}
-//				else { 
-//					newAction = getChaseAction(space, ship);
-//				}
-//			}
-//		}
-		
-		// did we bounce off the base?
-//		else if (ship.getResources().getTotal() == 0 && ship.getEnergy() > 2000 ) {
-//			current = null;
-//			newAction = getChaseAction(space, ship);
-//		}
 
 		// otherwise aim for the nearest enemy ship
-		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)) {
+		else if (current == null || current.isMovementFinished(space) || master.getCurrentAction().equals(master.ACTION_CHASE_ENEMY)) {
 			newAction = getChaseAction(space, ship);
 		} 
 		else {
 			newAction = ship.getCurrentAction();
 		}	
 		
-		Mastermind.setOldShipEnergy(ship.getEnergy());
+		master.setOldShipEnergy(ship.getEnergy());
 		return newAction;
 	}
 	/**
@@ -168,32 +139,66 @@ public class LITBOIZ extends TeamClient {
 	private AbstractAction getFlagShipAction(Toroidal2DPhysics space,
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
-		//Mastermind.incFireTimer(); //TODO
+		//master.incFireTimer(); //TODO
 		AbstractAction newAction = null;
 		
+		//determine if ship is carrying flag
+		Iterator<Flag> iter = space.getFlags().iterator();
+		while(iter.hasNext()){
+			Flag flag = iter.next();
+			if(space.findShortestDistance(flag.getPosition(), ship.getPosition()) < 20){
+				System.out.println(flag.getPosition() + ", " + ship.getPosition() + " " + flag.isBeingCarried());
+			}
+			if(flag.getPosition().equalsLocationOnly(ship.getPosition())
+					&& flag.isBeingCarried()){
+				System.out.println("GOT THE FLAG");
+				return returnToBaseAction(space, ship);
+			}
+		}
+		
 		//if ship is dead or idle, set a new action
-		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_BEACON))){
+		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && master.getCurrentAction().equals(master.ACTION_FIND_BEACON))){
 			
 			//clear graph and movement stack
 			edges = null;
 			nodes = null;
-			Mastermind.stack.clear();
+			master.stack.clear();
 			newAction = getFlagAction(space, ship);
 		}
 		// aim for a beacon if there isn't enough energy
-		else if (ship.getEnergy() < 1000) { //TODO
+		else if (ship.getEnergy() < 300) { //TODO
 			newAction = getBeaconAction(space, ship);
 		}
 
 		// otherwise aim for the nearest flag
-		else if (current == null || current.isMovementFinished(space) || Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_FLAG)) {
+		else if (current == null || current.isMovementFinished(space) || master.getCurrentAction().equals(master.ACTION_FIND_FLAG)) {
 			newAction = getFlagAction(space, ship);
 		} 
 		else {
 			newAction = ship.getCurrentAction();
 		}	
 		
-		Mastermind.setOldShipEnergy(ship.getEnergy());
+		master.setOldShipEnergy(ship.getEnergy());
+		return newAction;
+	}
+	
+	public AbstractAction returnToBaseAction(Toroidal2DPhysics space, Ship ship){
+		AbstractAction newAction = null;
+		Position currentPosition = ship.getPosition();
+		
+		Base base = Mastermind.findNearestBase(space, ship);
+
+		master.currentTarget = base;
+		master.setCurrentAction(master.ACTION_GO_TO_BASE);
+
+		Position basePos = base.getPosition();
+        if(basePos.getX() == currentPosition.getX()){ //prevent infinite slope
+            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
+        } else { 
+        	Position target = getAStarPosition(space, ship, currentPosition, basePos, ++master.aStarBaseCounter);	        	
+        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
+        }
+
 		return newAction;
 	}
 	
@@ -208,21 +213,21 @@ public class LITBOIZ extends TeamClient {
 		Position currentPosition = ship.getPosition();
 		//find nearest beacon
 		currentBeacon = Mastermind.pickNearestBeacon(space, ship);
-		Mastermind.currentTarget = currentBeacon;
+		master.currentTarget = currentBeacon;
 
 		if(currentBeacon == null){ //return to base
 			Base base = Mastermind.findNearestBase(space, ship);
 			newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
-			Mastermind.setCurrentAction(Mastermind.ACTION_GO_TO_BASE);
+			master.setCurrentAction(master.ACTION_GO_TO_BASE);
 		}
 		else { 
 			// find beacon 
-			Mastermind.setCurrentAction(Mastermind.ACTION_FIND_BEACON);
+			master.setCurrentAction(master.ACTION_FIND_BEACON);
 			Position beaconPos = currentBeacon.getPosition();
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentBeacon);
 	        } else { //directly target beacon
-	        	Position target = getAStarPosition(space, ship, currentPosition, beaconPos, ++Mastermind.aStarBeaconCounter);	        	
+	        	Position target = getAStarPosition(space, ship, currentPosition, beaconPos, ++master.aStarBeaconCounter);	        	
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 //	            targetedPosition = null;
 	        }
@@ -241,8 +246,8 @@ public class LITBOIZ extends TeamClient {
 	public AbstractAction getChaseAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentEnemy = Mastermind.pickNearestEnemyShip(space, ship);
-		Mastermind.currentTarget = currentEnemy;
-		Mastermind.setCurrentAction(Mastermind.ACTION_CHASE_ENEMY);
+		master.currentTarget = currentEnemy;
+		master.setCurrentAction(master.ACTION_CHASE_ENEMY);
 
 		AbstractAction newAction = null;
 
@@ -265,28 +270,25 @@ public class LITBOIZ extends TeamClient {
 //	        	Position initialTarget;
 	        	
 	        	//find first target point
-//	        	if(Mastermind.getOldEnemyPosition() == null){
+//	        	if(master.getOldEnemyPosition() == null){
 //	        		//no previous enemy position to use
 //	        		initialTarget = enemyPos; //? 
 //	        	} else {
-//	        		Position oldEnemyPos = Mastermind.getOldEnemyPosition();
+//	        		Position oldEnemyPos = master.getOldEnemyPosition();
 //	        		double distanceEnemyMoved = space.findShortestDistance(oldEnemyPos, enemyPos);
 //	        		//TODO change prediction method
-//	        		initialTarget = Mastermind.predictPath(space, oldEnemyPos, enemyPos, distanceEnemyMoved);
+//	        		initialTarget = master.predictPath(space, oldEnemyPos, enemyPos, distanceEnemyMoved);
 //	        		targetedPosition = initialTarget;
 //	        	}
 	        	
-	        	//will recalculate A* if switching enemy ships
-//	        	boolean shouldForceRecalc = (oldEnemy == null) ? false : !currentEnemy.getId().equals(oldEnemy.getId());
-	        	
-	        	Position target = getAStarPosition(space, ship, currentPosition, enemyPos, ++Mastermind.aStarEnemyCounter);
+	        	Position target = getAStarPosition(space, ship, currentPosition, enemyPos, ++master.aStarEnemyCounter);
 				
 				//Store enemy position
-				Mastermind.setOldEnemyPosition(enemyPos);
+				master.setOldEnemyPosition(enemyPos);
 				
-//				if(Mastermind.stack.peek().position.getX() == currentPosition.getX() && Mastermind.stack.peek().position.getY() == currentPosition.getY()){
-//					Mastermind.stack.pop();
-//					target = Mastermind.stack.peek().position;
+//				if(master.stack.peek().position.getX() == currentPosition.getX() && master.stack.peek().position.getY() == currentPosition.getY()){
+//					master.stack.pop();
+//					target = master.stack.peek().position;
 //				}
 				
 				//set action
@@ -301,8 +303,8 @@ public class LITBOIZ extends TeamClient {
 	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
-		Mastermind.currentTarget = currentFlag;
-		Mastermind.setCurrentAction(Mastermind.ACTION_FIND_FLAG);
+		master.currentTarget = currentFlag;
+		master.setCurrentAction(master.ACTION_FIND_FLAG);
 
 		AbstractAction newAction = null;
 
@@ -321,7 +323,7 @@ public class LITBOIZ extends TeamClient {
 	            targetedPosition = null;
 	        }
 	        else{ 
-	        	Position target = getAStarPosition(space, ship, currentPosition, flagPos, ++Mastermind.aStarEnemyCounter);
+	        	Position target = getAStarPosition(space, ship, currentPosition, flagPos, ++master.aStarEnemyCounter);
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 	        }
 		}
@@ -341,33 +343,33 @@ public class LITBOIZ extends TeamClient {
 		Position target;
 		
 		//will calculate A* when counter is 10 or stack is empty
-		if(counter == Mastermind.aStarCounter || Mastermind.stack.isEmpty()){
-			testPositions = Mastermind.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
-			Mastermind.stack =  Mastermind.aStar(currentPosition, initialTarget, testPositions, space);
+		if(counter == Mastermind.aStarCounter || master.stack.isEmpty()){
+			testPositions = master.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
+			master.stack =  master.aStar(currentPosition, initialTarget, testPositions, space);
 			
-			target = (!Mastermind.stack.isEmpty()) ? Mastermind.stack.pop().position : initialTarget;
-    		Mastermind.aStarCurrentPosition = target;
+			target = (!master.stack.isEmpty()) ? master.stack.pop().position : initialTarget;
+    		master.aStarCurrentPosition = target;
     		
     		//reset whichever counter aStar is using
-    		if(Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)){
-    			Mastermind.aStarEnemyCounter = 0;
+    		if(master.getCurrentAction().equals(master.ACTION_CHASE_ENEMY)){
+    			master.aStarEnemyCounter = 0;
     		}
-    		else if (Mastermind.getCurrentAction().equals(Mastermind.ACTION_FIND_BEACON)) {
-    			Mastermind.aStarBeaconCounter = 0;
+    		else if (master.getCurrentAction().equals(master.ACTION_FIND_BEACON)) {
+    			master.aStarBeaconCounter = 0;
     		}
 		} 
 		//if a Node is on the stack, go to that Position
 		else {
 			//if ship is approaching current target
-    		if(space.findShortestDistance(currentPosition, Mastermind.aStarCurrentPosition) < Mastermind.aStarDistanceThreshold){
-    			target = Mastermind.stack.pop().position;
-    			Mastermind.aStarCurrentPosition = target;
+    		if(space.findShortestDistance(currentPosition, master.aStarCurrentPosition) < Mastermind.aStarDistanceThreshold){
+    			target = master.stack.pop().position;
+    			master.aStarCurrentPosition = target;
     		} else { //resume course to Node on top of A* stack
     			//TODO
     			//target node might be removed too early
     			
-    			//target = Mastermind.stack.peek().position;
-    			target = Mastermind.aStarCurrentPosition;
+    			//target = master.stack.peek().position;
+    			target = master.aStarCurrentPosition;
     		}
 		}
 		targetedPosition = target;
@@ -382,7 +384,6 @@ public class LITBOIZ extends TeamClient {
 	public void initialize(Toroidal2DPhysics space) {
 		this.space = space;
 		shipToMastermindMap = new HashMap<>();
-		Mastermind.stack = new Stack<>();
 		asteroidCollectorID = null;
 	}
 
@@ -440,9 +441,9 @@ public class LITBOIZ extends TeamClient {
 		if(targetedPosition == null) return null;
 		Set<SpacewarGraphics> set = new HashSet<>();
 		//set.add(new CircleGraphics(20, Color.RED, targetedPosition));
-		if(!Mastermind.stack.isEmpty()){
+		if(!master.stack.isEmpty()){
 			//make a copy
-			Stack<Node> copyStack = (Stack<Node>) Mastermind.stack.clone();
+			Stack<Node> copyStack = (Stack<Node>) master.stack.clone();
 			//pop all off and display
 			for(Node n : copyStack){
 				set.add(new CircleGraphics(10, Color.GREEN, n.position));
@@ -557,25 +558,25 @@ public class LITBOIZ extends TeamClient {
 			SpaceSettlersPowerupEnum powerup = SpaceSettlersPowerupEnum.FIRE_MISSILE;
 
 			double distanceToEnemy = space.findShortestDistance(enemy.getPosition(), ourShip.getPosition());
-			if(actionableObject.isValidPowerup(powerup) && Mastermind.getCurrentAction().equals(Mastermind.ACTION_CHASE_ENEMY)){
+			if(actionableObject.isValidPowerup(powerup) && master.getCurrentAction().equals(master.ACTION_CHASE_ENEMY)){
 			    
 				//situation where our ship and enemy are moving at same speed
 				double xVelocityDiff = Math.abs(enemy.getPosition().getxVelocity() - ourShip.getPosition().getxVelocity());
 				double yVelocityDiff = Math.abs(enemy.getPosition().getyVelocity() - ourShip.getPosition().getyVelocity());
 				if ( xVelocityDiff <= 10 && yVelocityDiff <= 10) {
-			        if(Mastermind.getFireTimer() == Mastermind.rateOfFireFast){
+			        if(master.getFireTimer() == Mastermind.rateOfFireFast){
 				        powerUps.put(actionableObject.getId(), powerup);
-				        Mastermind.clearFireTimer(); //reset fire rate counter)	
+				        master.clearFireTimer(); //reset fire rate counter)	
 			        }
 			    }
 				//fire certain rate based on distance
 				if(distanceToEnemy <= Mastermind.enemyDistanceThresholdClose
 						|| (distanceToEnemy <= Mastermind.enemyDistanceThresholdMedium 
-							&& Mastermind.getFireTimer() == Mastermind.rateOfFireFast)
+							&& master.getFireTimer() == Mastermind.rateOfFireFast)
 						|| (distanceToEnemy <= Mastermind.enemyDistanceThresholdFar 
-							&& Mastermind.getFireTimer() == Mastermind.rateOfFireSlow)){
+							&& master.getFireTimer() == Mastermind.rateOfFireSlow)){
 					powerUps.put(actionableObject.getId(), powerup);
-					Mastermind.clearFireTimer(); //reset fire rate counter
+					master.clearFireTimer(); //reset fire rate counter
 				}
 			}
 		}
