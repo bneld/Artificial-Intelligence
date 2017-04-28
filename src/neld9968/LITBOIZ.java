@@ -38,6 +38,7 @@ import spacesettlers.utilities.Position;
  * @author Luis and Brian
  */
 public class LITBOIZ extends TeamClient {
+	boolean isFirst = true;
 	HashMap <UUID, Ship> asteroidToShipMap;
 	UUID asteroidCollectorID;
 	Ship ourShip;
@@ -72,6 +73,11 @@ public class LITBOIZ extends TeamClient {
 			if (actionable instanceof Ship) {
 				Ship ship = (Ship) actionable;
 				
+				if(isFirst){
+					asteroidCollectorID = ship.getId();
+					isFirst = false;
+				}
+				
 				//add to map if not already there
 				if(!shipToMastermindMap.containsKey(ship.getId())){
 					shipToMastermindMap.put(ship.getId(), new Mastermind());
@@ -82,8 +88,13 @@ public class LITBOIZ extends TeamClient {
 				master.ship = ship;
 				
 				//add actions
-				AbstractAction action = getFlagShipAction(space, ship);
-				actions.put(ship.getId(), action);
+				if(asteroidCollectorID.equals(ship.getId())){
+					actions.put(ship.getId(), getAsteroidCollectorAction(space, ship));
+				}
+				else {
+					AbstractAction action = getFlagShipAction(space, ship);
+					actions.put(ship.getId(), action);
+				}			
 				
 			} else {
 				// it is a base.  Heuristically decide when to use the shield (TODO)
@@ -300,6 +311,61 @@ public class LITBOIZ extends TeamClient {
 		return newAction;
 	}
 	
+	private AbstractAction getAsteroidCollectorAction(Toroidal2DPhysics space,
+			Ship ship) {
+		AbstractAction current = ship.getCurrentAction();
+		Position currentPosition = ship.getPosition();
+
+		// aim for a beacon if there isn't enough energy
+		if (ship.getEnergy() < 2000) {
+			Beacon beacon = Mastermind.pickNearestBeacon(space, ship);
+			AbstractAction newAction = null;
+			// if there is no beacon, then just skip a turn
+			if (beacon == null) {
+				newAction = new DoNothingAction();
+			} else {
+				newAction = new MoveToObjectAction(space, currentPosition, beacon);
+			}
+			return newAction;
+		}
+
+		// if the ship has enough resourcesAvailable, take it back to base
+		if (ship.getResources().getTotal() > 500) {
+			Base base = Mastermind.findNearestBase(space, ship);
+			AbstractAction newAction = new MoveToObjectAction(space, currentPosition, base);
+			return newAction;
+		}
+
+		// otherwise aim for the asteroid
+		if (current == null || current.isMovementFinished(space)) {
+			Asteroid asteroid = Mastermind.pickHighestValueFreeAsteroid(space, ship);
+
+			AbstractAction newAction = null;
+
+			/*if (asteroid == null) {
+				// there is no asteroid available so collect a beacon
+				Beacon beacon = pickNearestBeacon(space, ship);
+				// if there is no beacon, then just skip a turn
+				if (beacon == null) {
+					newAction = new DoNothingAction();
+				} else {
+					newAction = new MoveToObjectAction(space, currentPosition, beacon);
+				}
+			} else {
+				asteroidToShipMap.put(asteroid.getId(), ship);
+				newAction = new MoveToObjectAction(space, currentPosition, asteroid);
+			}*/
+			if (asteroid != null) {
+				newAction = new MoveToObjectAction(space, currentPosition, asteroid, 
+						asteroid.getPosition().getTranslationalVelocity());
+			}
+			
+			return newAction;
+		} 
+		
+		return ship.getCurrentAction();
+	}
+	
 	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
@@ -500,7 +566,7 @@ public class LITBOIZ extends TeamClient {
 					if (maxDistance > BASE_BUYING_DISTANCE) {
 						purchases.put(ship.getId(), PurchaseTypes.BASE);
 						bought_base = true;
-						//System.out.println("Buying a base!!");
+						System.out.println("Buying a base!!");
 						break;
 					}
 				}

@@ -572,6 +572,28 @@ public class Mastermind {
 	}
 	
 	/**
+	 * Returns the asteroid of highest value that isn't already being chased by this team
+	 * 
+	 * @return
+	 */
+	public static Asteroid pickHighestValueFreeAsteroid(Toroidal2DPhysics space, Ship ship) {
+		Set<Asteroid> asteroids = space.getAsteroids();
+		int bestMoney = Integer.MIN_VALUE;
+		Asteroid bestAsteroid = null;
+
+		for (Asteroid asteroid : asteroids) {
+
+			if (asteroid.isMineable() && asteroid.getResources().getTotal() > bestMoney) {
+				bestMoney = asteroid.getResources().getTotal();
+				bestAsteroid = asteroid;
+			}
+			
+		}
+		//System.out.println("Best asteroid has " + bestMoney);
+		return bestAsteroid;
+	}
+	
+	/**
 	 * returns alternate points when there is an obstruction in the original path (using limited recursion)
 	 * @param space simulator object 
 	 * @param ship our ship 
