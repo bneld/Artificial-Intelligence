@@ -3,7 +3,7 @@ package spacesettlers.simulator;
 import java.awt.Color;
 import java.io.File;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -123,7 +123,7 @@ public final class SpaceSettlersSimulator {
 		// load in all the configuration
 		simConfig = loadConfigFiles(parserConfig);
 
-		teams = new HashSet<Team>();
+		teams = new LinkedHashSet<Team>();
 		clientMap = new HashMap<String, TeamClient>();
 
 		if (simConfig.getRandomSeed() == 0) {
@@ -160,7 +160,7 @@ public final class SpaceSettlersSimulator {
 		// load in all the configuration
 		this.simConfig = simConfig;
 
-		teams = new HashSet<Team>();
+		teams = new LinkedHashSet<Team>();
 		clientMap = new HashMap<String, TeamClient>();
 
 		if (simConfig.getRandomSeed() == 0) {
@@ -483,7 +483,7 @@ public final class SpaceSettlersSimulator {
 
 		for (int s = 0; s < numShips; s++) {
 			// put the ships in the initial region for the team
-			Position freeLocation = simulatedSpace.getRandomFreeLocationInRegion(random, Ship.SHIP_RADIUS, 
+			Position freeLocation = simulatedSpace.getRandomFreeLocationInRegion(random, Ship.SHIP_RADIUS * 2, 
 					teamConfig.getInitialRegionULX(), teamConfig.getInitialRegionULY(), 
 					teamConfig.getInitialRegionLRX(), teamConfig.getInitialRegionLRY());
 			System.out.println("Starting ship for team " + team.getTeamName() + " in location " + freeLocation);
@@ -714,7 +714,7 @@ public final class SpaceSettlersSimulator {
 	 * Update the team infomation that is sharable
 	 */
 	private void updateTeamInfo() {
-		HashSet<ImmutableTeamInfo> teamInfo = new HashSet<ImmutableTeamInfo>();
+		LinkedHashSet<ImmutableTeamInfo> teamInfo = new LinkedHashSet<ImmutableTeamInfo>();
 		for (Team team : teams) {
 			teamInfo.add(new ImmutableTeamInfo(team));
 		}
