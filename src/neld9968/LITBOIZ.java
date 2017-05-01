@@ -31,7 +31,7 @@ import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.Position;
 
 /**
- * This agent navigates faster than others using an Roadmap A* targeting system.
+ * This agent navigates faster than others using a Roadmap A* targeting system.
  * It attacks the closest ship.
  * It will go to an energy beacon when energy is low enough.
  * 
@@ -42,18 +42,13 @@ public class LITBOIZ extends TeamClient {
 	HashMap <UUID, Ship> asteroidToShipMap;
 	UUID asteroidCollectorID;
 	Ship ourShip;
-	Ship currentEnemy;
-	Ship oldEnemy;
 	Flag currentFlag;
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
-	ArrayList<Position> testPositions = new ArrayList<>();
 	public static ArrayList<Edge> edges = new ArrayList<>();
 	public static ArrayList<Node> nodes = new ArrayList<>();
 	Toroidal2DPhysics space;
-//	public static Set<AbstractObject> testSet;
-//	public static ArrayList<Position> testPositions = new ArrayList<>();
 	Map<UUID, Mastermind> shipToMastermindMap;
 	Mastermind master;
 	
@@ -141,6 +136,7 @@ public class LITBOIZ extends TeamClient {
 		master.setOldShipEnergy(ship.getEnergy());
 		return newAction;
 	}
+	
 	/**
 	 * Gets the action for the flag runner
 	 * @param space the current space environment
@@ -158,7 +154,7 @@ public class LITBOIZ extends TeamClient {
 		while(iter.hasNext()){
 			Flag flag = iter.next();
 			if(space.findShortestDistance(flag.getPosition(), ship.getPosition()) < 20){
-				System.out.println(flag.getPosition() + ", " + ship.getPosition() + " " + flag.isBeingCarried());
+				//System.out.println(flag.getPosition() + ", " + ship.getPosition() + " " + flag.isBeingCarried());
 			}
 			if(flag.getPosition().equalsLocationOnly(ship.getPosition())
 					&& flag.isBeingCarried()){
@@ -168,7 +164,7 @@ public class LITBOIZ extends TeamClient {
 		}
 		
 		//if ship is dead or idle, set a new action
-		if(!ourShip.isAlive() || (ship.getEnergy() > 1000 && master.getCurrentAction().equals(master.ACTION_FIND_BEACON))){
+		if(!ourShip.isAlive()){
 			
 			//clear graph and movement stack
 			edges = null;
@@ -177,7 +173,7 @@ public class LITBOIZ extends TeamClient {
 			newAction = getFlagAction(space, ship);
 		}
 		// aim for a beacon if there isn't enough energy
-		else if (ship.getEnergy() < 300) { //TODO
+		else if (ship.getEnergy() < 300) {
 			newAction = getBeaconAction(space, ship);
 		}
 
@@ -240,7 +236,6 @@ public class LITBOIZ extends TeamClient {
 	        } else { //directly target beacon
 	        	Position target = getAStarPosition(space, ship, currentPosition, beaconPos, ++master.aStarBeaconCounter);	        	
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
-//	            targetedPosition = null;
 	        }
 		}	
 		
@@ -256,7 +251,7 @@ public class LITBOIZ extends TeamClient {
 	 */
 	public AbstractAction getChaseAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
-		currentEnemy = Mastermind.pickNearestEnemyShip(space, ship);
+		Ship currentEnemy = Mastermind.pickNearestEnemyShip(space, ship);
 		master.currentTarget = currentEnemy;
 		master.setCurrentAction(master.ACTION_CHASE_ENEMY);
 
@@ -269,7 +264,6 @@ public class LITBOIZ extends TeamClient {
 		else {
 	        Position enemyPos = currentEnemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
-//	        System.out.println(distanceToEnemy);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	        }
@@ -277,37 +271,17 @@ public class LITBOIZ extends TeamClient {
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	            targetedPosition = null;
 	        }
-	        else{ 
-//	        	Position initialTarget;
-	        	
-	        	//find first target point
-//	        	if(master.getOldEnemyPosition() == null){
-//	        		//no previous enemy position to use
-//	        		initialTarget = enemyPos; //? 
-//	        	} else {
-//	        		Position oldEnemyPos = master.getOldEnemyPosition();
-//	        		double distanceEnemyMoved = space.findShortestDistance(oldEnemyPos, enemyPos);
-//	        		//TODO change prediction method
-//	        		initialTarget = master.predictPath(space, oldEnemyPos, enemyPos, distanceEnemyMoved);
-//	        		targetedPosition = initialTarget;
-//	        	}
-	        	
+	        else{   	
 	        	Position target = getAStarPosition(space, ship, currentPosition, enemyPos, ++master.aStarEnemyCounter);
 				
 				//Store enemy position
 				master.setOldEnemyPosition(enemyPos);
-				
-//				if(master.stack.peek().position.getX() == currentPosition.getX() && master.stack.peek().position.getY() == currentPosition.getY()){
-//					master.stack.pop();
-//					target = master.stack.peek().position;
-//				}
 				
 				//set action
 //	    		targetedPosition = target;
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 	        }
 		}
-		oldEnemy = currentEnemy; //record the enemy ship
 		return newAction;
 	}
 	
@@ -324,7 +298,7 @@ public class LITBOIZ extends TeamClient {
 			if (beacon == null) {
 				newAction = new DoNothingAction();
 			} else {
-				newAction = new MoveToObjectAction(space, currentPosition, beacon);
+				newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, beacon);
 			}
 			return newAction;
 		}
@@ -332,7 +306,7 @@ public class LITBOIZ extends TeamClient {
 		// if the ship has enough resourcesAvailable, take it back to base
 		if (ship.getResources().getTotal() > 500) {
 			Base base = Mastermind.findNearestBase(space, ship);
-			AbstractAction newAction = new MoveToObjectAction(space, currentPosition, base);
+			AbstractAction newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
 			return newAction;
 		}
 
@@ -342,22 +316,8 @@ public class LITBOIZ extends TeamClient {
 
 			AbstractAction newAction = null;
 
-			/*if (asteroid == null) {
-				// there is no asteroid available so collect a beacon
-				Beacon beacon = pickNearestBeacon(space, ship);
-				// if there is no beacon, then just skip a turn
-				if (beacon == null) {
-					newAction = new DoNothingAction();
-				} else {
-					newAction = new MoveToObjectAction(space, currentPosition, beacon);
-				}
-			} else {
-				asteroidToShipMap.put(asteroid.getId(), ship);
-				newAction = new MoveToObjectAction(space, currentPosition, asteroid);
-			}*/
 			if (asteroid != null) {
-				newAction = new MoveToObjectAction(space, currentPosition, asteroid, 
-						asteroid.getPosition().getTranslationalVelocity());
+				newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, asteroid);
 			}
 			
 			return newAction;
@@ -389,7 +349,7 @@ public class LITBOIZ extends TeamClient {
 	            targetedPosition = null;
 	        }
 	        else{ 
-	        	Position target = getAStarPosition(space, ship, currentPosition, flagPos, ++master.aStarEnemyCounter);
+	        	Position target = getAStarPosition(space, ship, currentPosition, flagPos, ++master.aStarFlagCounter);
 	        	newAction = new LITBOIZMOVEACTION(space, currentPosition, target);	
 	        }
 		}
@@ -405,12 +365,13 @@ public class LITBOIZ extends TeamClient {
 	 * @param counter that triggers A*
 	 * @return newAction 
 	 */
-	public Position getAStarPosition(Toroidal2DPhysics space, Ship ship, Position currentPosition, Position initialTarget, int counter){
+	public Position getAStarPosition(Toroidal2DPhysics space, Ship ship,
+			Position currentPosition, Position initialTarget, int counter){
 		Position target;
 		
 		//will calculate A* when counter is 10 or stack is empty
 		if(counter == Mastermind.aStarCounter || master.stack.isEmpty()){
-			testPositions = master.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
+			ArrayList<Position> testPositions = master.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
 			master.stack =  master.aStar(currentPosition, initialTarget, testPositions, space);
 			
 			target = (!master.stack.isEmpty()) ? master.stack.pop().position : initialTarget;
@@ -423,6 +384,9 @@ public class LITBOIZ extends TeamClient {
     		else if (master.getCurrentAction().equals(master.ACTION_FIND_BEACON)) {
     			master.aStarBeaconCounter = 0;
     		}
+    		else if (master.getCurrentAction().equals(master.ACTION_FIND_FLAG)) {
+    			master.aStarFlagCounter = 0;
+    		}
 		} 
 		//if a Node is on the stack, go to that Position
 		else {
@@ -434,7 +398,6 @@ public class LITBOIZ extends TeamClient {
     			//TODO
     			//target node might be removed too early
     			
-    			//target = master.stack.peek().position;
     			target = master.aStarCurrentPosition;
     		}
 		}

@@ -70,6 +70,7 @@ public class Mastermind {
 	public int aStarEnemyCounter = 0;
 	public int aStarBeaconCounter = 0;
 	public int aStarBaseCounter = 0;
+	public int aStarFlagCounter = 0;
 	public AbstractObject currentTarget;
 	
 	//chromosome parameters
@@ -614,22 +615,18 @@ public class Mastermind {
 		if (counter > 4) {
 			//TODO
 			ArrayList<Position> extraPoints = new ArrayList<>();
-			//TODO
-			for(double i = 100; i < 500; i+= 100){
-				Position[] pos = getPerpendicularPositions(start, end, i);
-				extraPoints.add(pos[0]);
-				extraPoints.add(pos[1]);
+			//for(double i = 400; i < 700; i+= 100){
+				//Position[] pos = getPerpendicularPositions(start, end, i);
+				//extraPoints.add(pos[0]);
+				//extraPoints.add(pos[1]);
+			//}
+			for(double angle : DEGREES_45_TO_85_BY_FIVE){
+				Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
+				Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
+				extraPoints.add(right);
+				extraPoints.add(left);
 			}
 			
-//			for(double angle : DEGREES_45_TO_85_BY_FIVE){
-//				//may need to scale angles depending on distance to target
-//				Position pos = alterPathAlongMidpointAxis(space, start, findMidpoint(start, end), angle);
-//				if(isPathClearOfObstructions(start, pos, Mastermind.getAllObstructions(space, ship), ship.getRadius(), space)){
-//					extraPoints.add(pos);
-//					break;
-//				}
-//				
-//			}
 			return extraPoints;
 		}
 		
