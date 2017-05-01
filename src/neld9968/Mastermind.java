@@ -613,21 +613,21 @@ public class Mastermind {
 		//recursion is limited to 5 times
 		//if no path is found after 5 recursions, increase angle of search
 		if (counter > 4) {
-			//TODO
-			ArrayList<Position> extraPoints = new ArrayList<>();
+			return null;
+			//ArrayList<Position> extraPoints = new ArrayList<>();
 			//for(double i = 400; i < 700; i+= 100){
 				//Position[] pos = getPerpendicularPositions(start, end, i);
 				//extraPoints.add(pos[0]);
 				//extraPoints.add(pos[1]);
 			//}
-			for(double angle : DEGREES_45_TO_85_BY_FIVE){
-				Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
-				Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
-				extraPoints.add(right);
-				extraPoints.add(left);
-			}
+//			for(double angle : DEGREES_45_TO_85_BY_FIVE){
+//				Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
+//				Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
+//				extraPoints.add(right);
+//				extraPoints.add(left);
+//			}
 			
-			return extraPoints;
+			//return extraPoints;
 		}
 		
 		ArrayList<Position> result = new ArrayList<>();
@@ -662,6 +662,37 @@ public class Mastermind {
 					result.addAll(alternatePoints);
 				}
 			}
+			
+			//TODO ADDING ANGLES
+			if(counter == 0){
+				for(double i = 400; i < 700; i+= 100){
+					Position[] pos = getPerpendicularPositions(start, end, i);
+					result.add(pos[0]);
+					result.add(pos[1]);
+				}
+//				for(double angle : DEGREES_45_TO_85_BY_FIVE){
+//					Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
+//					Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
+//					result.add(right);
+//					result.add(left);
+//					if(!isPathClearOfObstructions(start, right, getAllObstructions(space, ship), ship.getRadius(), space)){
+//						ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, right, ++counter);
+//						if(alternatePoints != null){
+//							result.addAll(alternatePoints);
+//						}
+//					}
+//					
+//					//  if path to left is clear
+//					if(!isPathClearOfObstructions(start, left, getAllObstructions(space, ship), ship.getRadius(), space)){
+//						ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, left, ++counter);
+//						if(alternatePoints != null){
+//							result.addAll(alternatePoints);
+//						}
+//					}
+//				}
+			}
+			//ADDING ANGLES
+			
 		}
 		return result;
 	}
