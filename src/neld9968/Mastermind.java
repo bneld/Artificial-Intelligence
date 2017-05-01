@@ -670,6 +670,11 @@ public class Mastermind {
 					result.add(pos[0]);
 					result.add(pos[1]);
 				}
+				
+				//add point behind objective
+				result.add(new Position(end.getX() + (end.getX() - start.getX()), 
+						end.getY() + (end.getY() - start.getY())));
+				
 //				for(double angle : DEGREES_45_TO_85_BY_FIVE){
 //					Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
 //					Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left

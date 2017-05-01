@@ -146,16 +146,16 @@ public class LITBOIZ extends TeamClient {
 	private AbstractAction getFlagShipAction(Toroidal2DPhysics space,
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
-		//master.incFireTimer(); //TODO
+		master.incFireTimer(); //TODO
 		AbstractAction newAction = null;
 		
 		//determine if ship is carrying flag
 		Iterator<Flag> iter = space.getFlags().iterator();
 		while(iter.hasNext()){
 			Flag flag = iter.next();
-			if(space.findShortestDistance(flag.getPosition(), ship.getPosition()) < 20){
-				//System.out.println(flag.getPosition() + ", " + ship.getPosition() + " " + flag.isBeingCarried());
-			}
+//			if(space.findShortestDistance(flag.getPosition(), ship.getPosition()) < 20){
+//				System.out.println(flag.getPosition() + ", " + ship.getPosition() + " " + flag.isBeingCarried());
+//			}
 			if(flag.getPosition().equalsLocationOnly(ship.getPosition())
 					&& flag.isBeingCarried()){
 				System.out.println("GOT THE FLAG");
@@ -163,7 +163,7 @@ public class LITBOIZ extends TeamClient {
 			}
 		}
 		
-		//if ship is dead or idle, set a new action
+		//if ship is dead, set a new action
 		if(!ourShip.isAlive()){
 			
 			//clear graph and movement stack
@@ -329,6 +329,7 @@ public class LITBOIZ extends TeamClient {
 	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
+		System.out.println(currentFlag);
 		master.currentTarget = currentFlag;
 		master.setCurrentAction(master.ACTION_FIND_FLAG);
 
@@ -336,7 +337,12 @@ public class LITBOIZ extends TeamClient {
 
 		if (currentFlag == null) {
 			//if no flag, go to beacon
-			newAction = getBeaconAction(space, ship);	
+			if(ship.getEnergy() < 1000){
+				newAction = getBeaconAction(space, ship);
+			} else {
+				newAction = getChaseAction(space, ship);
+			}
+				
 		} 
 		else {
 	        Position flagPos = currentFlag.getPosition();
