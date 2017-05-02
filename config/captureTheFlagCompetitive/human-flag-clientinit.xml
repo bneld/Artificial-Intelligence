@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TeamClientConfig>
 	<!-- Name of the client class (this is used to construct the client so it needs to be the full class name) -->
-	<classname>spacesettlers.clients.HumanTeamClient</classname>
+	<classname>neld9968.ExampleAStarClient</classname>
 	
 	<!-- You can choose the color your team's ships will be on the screen.  Specify the red, green, and blue components -->
 	<teamColorRed>255</teamColorRed>
@@ -9,7 +9,7 @@
 	<teamColorBlue>0</teamColorBlue>
 	
 	<!-- The name that shows up in the ladder -->
-	<ladderName>Human Flag Team</ladderName>
+	<ladderName>Show me how to live</ladderName>
 	
 	<!-- The number of ships in the team.  Note, if this is bigger than the maximum number of allowable ships per team, it is ignored -->
 	<numberInitialShipsInTeam>1</numberInitialShipsInTeam>

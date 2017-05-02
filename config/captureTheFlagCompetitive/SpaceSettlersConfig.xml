@@ -42,6 +42,10 @@
 		<HighLevelTeamConfig>
 			<teamName>Passive</teamName>
 			<configFile>passive-flag3ships-clientinit.xml</configFile>
+		</HighLevelTeamConfig>	
+		<HighLevelTeamConfig>
+			<teamName>Show me how to live</teamName>
+			<configFile>human-flag-clientinit.xml</configFile>
 		</HighLevelTeamConfig>		
 	</teams>
 
@@ -52,10 +56,10 @@
 			<fixedLocation>true</fixedLocation>
 			<x>800</x>
 			<y>640</y>
-			<boundingBoxULX>550</boundingBoxULX>
-			<boundingBoxULY>340</boundingBoxULY>
-			<boundingBoxLRX>650</boundingBoxLRX>
-			<boundingBoxLRY>740</boundingBoxLRY>
+			<boundingBoxULX>650</boundingBoxULX>
+			<boundingBoxULY>440</boundingBoxULY>
+			<boundingBoxLRX>550</boundingBoxLRX>
+			<boundingBoxLRY>640</boundingBoxLRY>
 		</BaseConfig>
 		<BaseConfig>
 			<teamName>Aggressive</teamName>
@@ -76,6 +80,16 @@
 			<boundingBoxULY>340</boundingBoxULY>
 			<boundingBoxLRX>1050</boundingBoxLRX>
 			<boundingBoxLRY>740</boundingBoxLRY>
+		</BaseConfig>
+		<BaseConfig>
+			<teamName>Show me how to live</teamName>
+			<fixedLocation>true</fixedLocation>
+			<x>900</x>
+			<y>540</y>
+			<boundingBoxULX>900</boundingBoxULX>
+			<boundingBoxULY>300</boundingBoxULY>
+			<boundingBoxLRX>1000</boundingBoxLRX>
+			<boundingBoxLRY>700</boundingBoxLRY>
 		</BaseConfig>
 	</bases>
 	
@@ -110,6 +124,17 @@
 			</startX>
 			<startY>
 				<int>250</int>
+				<int>800</int>
+			</startY>
+		</FlagConfig>
+		<FlagConfig>
+			<teamName>Show me how to live</teamName>
+			<startX>
+				<int>1200</int>
+				<int>1200</int>
+			</startX>
+			<startY>
+				<int>200</int>
 				<int>800</int>
 			</startY>
 		</FlagConfig>

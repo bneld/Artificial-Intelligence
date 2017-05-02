@@ -27,9 +27,9 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Stack;
 
-import neld9968.LitGraph;
-import neld9968.LitGraph.Edge;
-import neld9968.LitGraph.Node;
+//import neld9968.LitGraph;
+//import neld9968.LitGraph.Edge;
+//import neld9968.LitGraph.Node;
 
 
 /**
@@ -64,7 +64,7 @@ public class Mastermind {
 	public Ship ship;
 	public int timeout = 0;
 	// stack that holds each node in graph
-	public Stack<Node> stack;
+//	public Stack<Node> stack;
 	public Position aStarCurrentPosition;
 	
 	public int aStarEnemyCounter = 0;
@@ -89,7 +89,7 @@ public class Mastermind {
 	public static int aStarCounter = currentChromosome.aStarCounter;
 	
 	public Mastermind(){
-		stack = new Stack<>();
+//		stack = new Stack<>();
 	}
 	
 	/**
@@ -437,122 +437,122 @@ public class Mastermind {
 	 * @param space simulator object
 	 * @return oldEnemyPosition 
 	 */
-	public Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
-		
-		// create stack and flags for first initialization 
-		Stack<Node> parents = new Stack<>();
-		Node lastVisited;
-		boolean startExists = false;
-		boolean targetExists = false;
-		
-		// check if start and target are already included in points
-		for(Position p : points) {
-			if(p.getX() == start.getX() && p.getY() == start.getY()){
-				startExists = true;
-			}
-			if(p.getX() == target.getX() && p.getY() == target.getY()){
-				targetExists = true;
-			}
-		}
-		
-		// add start or target to points if not already there
-		if(!startExists) {
-			points.add(start);
-		}
-		if(!targetExists) {
-			points.add(target);
-		}
-
-		// create new graph
-		LitGraph graph = new LitGraph(this, start, target, points, space);
-		
-		//set of visited nodes
-		Set<Node> closed = new HashSet<>();
-		
-		//empty priority queue for unexplored nodes
-		PriorityQueue<Node> fringe = new PriorityQueue<>(10, new Comparator<Node>(){
-			@Override
-			public int compare(Node arg0, Node arg1) {
-				if(arg0.f == arg1.f) { return 0; }
-				//comparator is reversed to put smallest value on top of queue
-				else { return (arg0.f < arg1.f) ? 1 : -1; }
-			}
-		});
-		
-		graph.startNode.g = 0;
-		
-		//add all children of initial node to fringe
-		for(Edge e : graph.startNode.edges){
-			Node child = e.end;
-			child.g = e.weight;
-			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
-			fringe.add(child);	
-		}
-		
-		//add start to stack for saving optimal path
-		parents.add(graph.startNode);
-		lastVisited = graph.startNode;
-
-		//loop
-		while(true) {
-			//increment timeout
-			timeout++;
-			
-			//check for timeout
-			if (timeout > 1000) { 
-				timeout = 0;
-				return checkStartNode(reverseStack(parents), start);
-			}
-			
-			//target was not found
-			if(fringe.isEmpty()){
-				return checkStartNode(reverseStack(parents), start);
-			}
-			
-			//find node with next best f(n)
-			Node next = fringe.poll();
-			
-			//h(n)=0 means found target
-			if(next.h == 0) {
-				parents.add(next);
-				return checkStartNode(reverseStack(parents), start);
-			}
-			
-			if(!closed.contains(next)){
-				//visit that node
-				closed.add(next);
-				
-				if(!lastVisited.equals(parents.peek())){
-					parents.pop();
-				}
-				
-				//add to parent stack
-				parents.push(next);
-				
-				//adding children to fringe
-				for(Edge e : next.edges){
-					Node child = e.end;
-					child.g = e.weight + next.g;
-					if(child.f > child.g + child.h) child.f = child.g + child.h;
-						
-					if(!fringe.contains(child) && !closed.contains(child)){
-						 fringe.add(child);	
-					}
-				}
-			}
-		}
-	}
+//	public Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
+//		
+//		// create stack and flags for first initialization 
+//		Stack<Node> parents = new Stack<>();
+//		Node lastVisited;
+//		boolean startExists = false;
+//		boolean targetExists = false;
+//		
+//		// check if start and target are already included in points
+//		for(Position p : points) {
+//			if(p.getX() == start.getX() && p.getY() == start.getY()){
+//				startExists = true;
+//			}
+//			if(p.getX() == target.getX() && p.getY() == target.getY()){
+//				targetExists = true;
+//			}
+//		}
+//		
+//		// add start or target to points if not already there
+//		if(!startExists) {
+//			points.add(start);
+//		}
+//		if(!targetExists) {
+//			points.add(target);
+//		}
+//
+//		// create new graph
+//		LitGraph graph = new LitGraph(this, start, target, points, space);
+//		
+//		//set of visited nodes
+//		Set<Node> closed = new HashSet<>();
+//		
+//		//empty priority queue for unexplored nodes
+//		PriorityQueue<Node> fringe = new PriorityQueue<>(10, new Comparator<Node>(){
+//			@Override
+//			public int compare(Node arg0, Node arg1) {
+//				if(arg0.f == arg1.f) { return 0; }
+//				//comparator is reversed to put smallest value on top of queue
+//				else { return (arg0.f < arg1.f) ? 1 : -1; }
+//			}
+//		});
+//		
+//		graph.startNode.g = 0;
+//		
+//		//add all children of initial node to fringe
+//		for(Edge e : graph.startNode.edges){
+//			Node child = e.end;
+//			child.g = e.weight;
+//			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
+//			fringe.add(child);	
+//		}
+//		
+//		//add start to stack for saving optimal path
+//		parents.add(graph.startNode);
+//		lastVisited = graph.startNode;
+//
+//		//loop
+//		while(true) {
+//			//increment timeout
+//			timeout++;
+//			
+//			//check for timeout
+//			if (timeout > 1000) { 
+//				timeout = 0;
+//				return checkStartNode(reverseStack(parents), start);
+//			}
+//			
+//			//target was not found
+//			if(fringe.isEmpty()){
+//				return checkStartNode(reverseStack(parents), start);
+//			}
+//			
+//			//find node with next best f(n)
+//			Node next = fringe.poll();
+//			
+//			//h(n)=0 means found target
+//			if(next.h == 0) {
+//				parents.add(next);
+//				return checkStartNode(reverseStack(parents), start);
+//			}
+//			
+//			if(!closed.contains(next)){
+//				//visit that node
+//				closed.add(next);
+//				
+//				if(!lastVisited.equals(parents.peek())){
+//					parents.pop();
+//				}
+//				
+//				//add to parent stack
+//				parents.push(next);
+//				
+//				//adding children to fringe
+//				for(Edge e : next.edges){
+//					Node child = e.end;
+//					child.g = e.weight + next.g;
+//					if(child.f > child.g + child.h) child.f = child.g + child.h;
+//						
+//					if(!fringe.contains(child) && !closed.contains(child)){
+//						 fringe.add(child);	
+//					}
+//				}
+//			}
+//		}
+//	}
 	
 	/**
 	 * checks if start node is at top of stack
 	 * @return stack of nodes from graph 
 	 */
-	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
-		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
-			stack.pop();
-		}
-		return stack;
-	}
+//	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
+//		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
+//			stack.pop();
+//		}
+//		return stack;
+//	}
 	
 	/**
 	 * Check to see if following a straight line path between two given locations would result in a collision with a provided set of obstructions
@@ -760,14 +760,14 @@ public class Mastermind {
 	 * @param stack of nodes in graph
 	 * @return reversedStack
 	 */
-	public static Stack<Node> reverseStack(Stack<Node> stack){
-		
-		Stack<Node> reversedStack = new Stack<>();
-		while(!stack.isEmpty()){ 
-			reversedStack.push(stack.pop());
-		}
-		return reversedStack;
-	}
+//	public static Stack<Node> reverseStack(Stack<Node> stack){
+//		
+//		Stack<Node> reversedStack = new Stack<>();
+//		while(!stack.isEmpty()){ 
+//			reversedStack.push(stack.pop());
+//		}
+//		return reversedStack;
+//	}
 	
 	/** Used for genetic algorithm to initialize the chromosome's parameters for the agent.
 	 * Knows if it should use random values for first gen or take values from parent generation.
