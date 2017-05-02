@@ -70,6 +70,7 @@ public class Mastermind {
 	public int aStarEnemyCounter = 0;
 	public int aStarBeaconCounter = 0;
 	public int aStarBaseCounter = 0;
+	public int aStarResourceCounter = 0;
 	public int aStarFlagCounter = 0;
 	public AbstractObject currentTarget;
 	
@@ -212,6 +213,37 @@ public class Mastermind {
 				continue;
 			}
 			// find shortest distance of ships
+			double distance = space.findShortestDistance(ship.getPosition(), otherShip.getPosition());
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestShip = otherShip;
+			}
+		}
+		
+		return nearestShip;
+	}
+	
+	
+	/**
+	 * Find the nearest ship on another team and aim for it
+	 * @param space
+	 * @param ship
+	 * @return nearestShip
+	 */
+	public static Ship pickNearestFlagShip(Toroidal2DPhysics space, Ship ship) {
+		double minDistance = Double.POSITIVE_INFINITY;
+		Ship nearestShip = null;
+		
+		// loop through all ships
+		for (Ship otherShip : space.getShips()) {
+			
+			// don't aim for our own team (or ourself)
+			if (otherShip.getTeamName().equals(ship.getTeamName()) || !otherShip.isCarryingFlag()) {
+				continue;
+			}
+			
+			// find shortest distance of ships
+			System.out.println("TARGETING FLAG GUY");
 			double distance = space.findShortestDistance(ship.getPosition(), otherShip.getPosition());
 			if (distance < minDistance) {
 				minDistance = distance;
@@ -665,7 +697,7 @@ public class Mastermind {
 			
 			//TODO ADDING ANGLES
 			if(counter == 0){
-				for(double i = 400; i < 700; i+= 100){
+				for(double i = 400; i < 1000; i+= 100){
 					Position[] pos = getPerpendicularPositions(start, end, i);
 					result.add(pos[0]);
 					result.add(pos[1]);
@@ -674,6 +706,10 @@ public class Mastermind {
 				//add point behind objective
 				result.add(new Position(end.getX() + (end.getX() - start.getX()), 
 						end.getY() + (end.getY() - start.getY())));
+				
+				//add point behind ship
+//				result.add(new Position(start.getX() - (end.getX() - start.getX()), 
+//						start.getY() - (end.getY() - start.getY())));
 				
 //				for(double angle : DEGREES_45_TO_85_BY_FIVE){
 //					Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
