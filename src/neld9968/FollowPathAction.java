@@ -1,9 +1,7 @@
-package amy.astar;
+package neld9968;
 
-import amy.MyFasterMoveAction;
 import spacesettlers.actions.AbstractAction;
 import spacesettlers.actions.DoNothingAction;
-import spacesettlers.actions.MoveAction;
 import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
 
@@ -60,7 +58,7 @@ public class FollowPathAction {
 				DoNothingAction doNothing = new DoNothingAction();
 				lastCommand = doNothing;
 			} else {
-				MoveAction command = new MoveAction(state, ship.getPosition(), path[currentVertex].getPosition());
+				LITBOIZMOVEACTION command = new LITBOIZMOVEACTION(state, ship.getPosition(), path[currentVertex].getPosition());
 				//AbstractAction command = new MyFasterMoveAction(state, ship.getPosition(), path[currentVertex].getPosition());
 				lastCommand = command;
 			}

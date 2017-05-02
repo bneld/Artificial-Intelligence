@@ -1,4 +1,4 @@
-package amy.astar;
+package neld9968;
 
 
 public class SearchNode {
