@@ -452,7 +452,9 @@ public class LITBOIZ extends TeamClient {
 		HashMap<UUID, PurchaseTypes> purchases = new HashMap<UUID, PurchaseTypes>();
 
 		// can I buy a ship?
-		if (numShips < 6 && purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable)) {
+		//cost of every item doubles every purchase
+		//limit us to 5 ships and then buy bases after that
+		if (numShips < 5 && purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable)) {
 			for (AbstractActionableObject actionableObject : actionableObjects) {
 				if (actionableObject instanceof Base) {
 					Base base = (Base) actionableObject;
@@ -460,11 +462,11 @@ public class LITBOIZ extends TeamClient {
 					purchases.put(base.getId(), PurchaseTypes.SHIP);
 					break;
 				}
-
 			}
 
-		}		
-		if(numShips >= 6){
+		}
+		//after we have 5 ships, focus on buying bases
+		if(numShips >= 5){
 			canBuyBase = purchaseCosts.canAfford(PurchaseTypes.BASE, resourcesAvailable);
 			if (canBuyBase) {
 				
@@ -488,7 +490,7 @@ public class LITBOIZ extends TeamClient {
 					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(3)) < 3){
 					purchases.put(asteroidCollectorID, PurchaseTypes.BASE);
 					System.out.println("Buying a base!!");
-				}		
+				}
 			}
 		}
 		

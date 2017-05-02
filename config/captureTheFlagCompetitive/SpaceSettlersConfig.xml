@@ -42,10 +42,6 @@
 		<HighLevelTeamConfig>
 			<teamName>Passive</teamName>
 			<configFile>passive-flag3ships-clientinit.xml</configFile>
-		</HighLevelTeamConfig>	
-		<HighLevelTeamConfig>
-			<teamName>Show me how to live</teamName>
-			<configFile>human-flag-clientinit.xml</configFile>
 		</HighLevelTeamConfig>		
 	</teams>
 
@@ -81,16 +77,6 @@
 			<boundingBoxLRX>1050</boundingBoxLRX>
 			<boundingBoxLRY>740</boundingBoxLRY>
 		</BaseConfig>
-		<BaseConfig>
-			<teamName>Show me how to live</teamName>
-			<fixedLocation>true</fixedLocation>
-			<x>900</x>
-			<y>540</y>
-			<boundingBoxULX>900</boundingBoxULX>
-			<boundingBoxULY>300</boundingBoxULY>
-			<boundingBoxLRX>1000</boundingBoxLRX>
-			<boundingBoxLRY>700</boundingBoxLRY>
-		</BaseConfig>
 	</bases>
 	
 	<flags>
@@ -124,17 +110,6 @@
 			</startX>
 			<startY>
 				<int>250</int>
-				<int>800</int>
-			</startY>
-		</FlagConfig>
-		<FlagConfig>
-			<teamName>Show me how to live</teamName>
-			<startX>
-				<int>1200</int>
-				<int>1200</int>
-			</startX>
-			<startY>
-				<int>200</int>
 				<int>800</int>
 			</startY>
 		</FlagConfig>
