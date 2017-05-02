@@ -152,7 +152,7 @@ public class LITBOIZ extends TeamClient {
 		Vertex[] path = graph.findAStarPath(space);
 		followPathAction = new FollowPathAction(path);
 		newAction = followPathAction.followPath(space, ship);
-		//graphByShip.put(ship.getId(), graph);
+		graphByShip.put(ship.getId(), graph);
 		return newAction;
 	}
 
@@ -443,6 +443,7 @@ public class LITBOIZ extends TeamClient {
 	public void initialize(Toroidal2DPhysics space) {
 		this.space = space;
 		shipToMastermindMap = new HashMap<>();
+		graphByShip = new HashMap<>();
 		asteroidCollectorID = null;
 		basePositions.add(new Position(150,250));
 		basePositions.add(new Position(1450,250));
@@ -505,13 +506,13 @@ public class LITBOIZ extends TeamClient {
 		
 		HashSet<SpacewarGraphics> set = new HashSet<>();
 		
-		if (graphByShip != null) {
-			for (Graph graph : graphByShip.values()) {
-				// uncomment to see the full graph
-				set.addAll(graph.getAllGraphics());
-				set.addAll(graph.getSolutionPathGraphics());
-			}
-		}
+//		if (graphByShip != null) {
+//			for (Graph graph : graphByShip.values()) {
+//				// uncomment to see the full graph
+//				set.addAll(graph.getAllGraphics());
+//				set.addAll(graph.getSolutionPathGraphics());
+//			}
+//		}
 		
 		Set<UUID> keys = shipList.keySet();
 		for(UUID id : keys){

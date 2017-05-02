@@ -27,10 +27,6 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Stack;
 
-//import neld9968.LitGraph;
-//import neld9968.LitGraph.Edge;
-//import neld9968.LitGraph.Node;
-
 
 /**
  * Knowledge Representation Class that contains knowledge of the environment and ship.
@@ -78,15 +74,15 @@ public class Mastermind {
 	//static LITCHROMOSOME currentChromosome = initChromosome();
 	
 	//use genetic algorithm best parameters
-	static LITCHROMOSOME currentChromosome = new LITCHROMOSOME(17, 66, 43, 185, 317, 136, 10);
+	//static LITCHROMOSOME currentChromosome = new LITCHROMOSOME(17, 66, 43, 185, 317, 136, 10);
 
-	public static int rateOfFireFast = currentChromosome.rateOfFireFast;
-	public static int rateOfFireSlow = currentChromosome.rateOfFireSlow;
-	public static int enemyDistanceThresholdClose = currentChromosome.enemyDistanceThresholdClose;
-	public static int enemyDistanceThresholdMedium = currentChromosome.enemyDistanceThresholdMedium;
-	public static int enemyDistanceThresholdFar = currentChromosome.enemyDistanceThresholdFar;
-	public static int aStarDistanceThreshold = currentChromosome.aStarDistanceThreshold;
-	public static int aStarCounter = currentChromosome.aStarCounter;
+	public static int rateOfFireFast = 17;
+	public static int rateOfFireSlow = 66;
+	public static int enemyDistanceThresholdClose = 43;
+	public static int enemyDistanceThresholdMedium = 185;
+	public static int enemyDistanceThresholdFar = 317;
+	public static int aStarDistanceThreshold = 136;
+	public static int aStarCounter = 10;
 	
 	public Mastermind(){
 //		stack = new Stack<>();
@@ -773,40 +769,40 @@ public class Mastermind {
 	 * Knows if it should use random values for first gen or take values from parent generation.
 	 * 
 	 */
-	public static LITCHROMOSOME initChromosome() {
-		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
-		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
-		int numberToWrite = 0;
-		if(randomize){
-			return new LITCHROMOSOME();	
-		}
-		else {
-			try {
-				
-				if(!numberFile.exists()){
-					numberToWrite = 0;
-				}
-				else {
-					//read number line from LITNUMBER.txt
-					FileInputStream fileInStream = new FileInputStream(numberFile);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
-					String line = reader.readLine();
-					
-					if(line != null && !line.isEmpty()){
-						numberToWrite = Integer.parseInt(line);
-					} else {
-						numberToWrite = 0;
-					}
-					reader.close();
-				}
-				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
-				f2.write(Integer.toString(numberToWrite + 1));		    
-			    f2.close();
-			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
-			} catch (Exception e) {
-	            e.printStackTrace();
-	        }
-			return null;
-		}
-	}
+//	public static LITCHROMOSOME initChromosome() {
+//		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
+//		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
+//		int numberToWrite = 0;
+//		if(randomize){
+//			return new LITCHROMOSOME();	
+//		}
+//		else {
+//			try {
+//				
+//				if(!numberFile.exists()){
+//					numberToWrite = 0;
+//				}
+//				else {
+//					//read number line from LITNUMBER.txt
+//					FileInputStream fileInStream = new FileInputStream(numberFile);
+//					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
+//					String line = reader.readLine();
+//					
+//					if(line != null && !line.isEmpty()){
+//						numberToWrite = Integer.parseInt(line);
+//					} else {
+//						numberToWrite = 0;
+//					}
+//					reader.close();
+//				}
+//				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
+//				f2.write(Integer.toString(numberToWrite + 1));		    
+//			    f2.close();
+//			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
+//			} catch (Exception e) {
+//	            e.printStackTrace();
+//	        }
+//			return null;
+//		}
+//	}
 }
