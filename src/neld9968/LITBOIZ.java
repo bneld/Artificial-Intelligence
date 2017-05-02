@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
-//import neld9968.LitGraph.Edge;
-//import neld9968.LitGraph.Node;
 import spacesettlers.actions.*;
 import spacesettlers.objects.*;
 import spacesettlers.objects.powerups.*;
@@ -55,8 +53,6 @@ public class LITBOIZ extends TeamClient {
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
-//	public static ArrayList<Edge> edges = new ArrayList<>();
-//	public static ArrayList<Node> nodes = new ArrayList<>();
 	Toroidal2DPhysics space;
 	Map<UUID, Mastermind> shipToMastermindMap;
 	Map<UUID, Ship> shipList = new HashMap<UUID, Ship>();
@@ -118,6 +114,7 @@ public class LITBOIZ extends TeamClient {
 				}
 				master = shipToMastermindMap.get(ship.getId());
 				
+				
 				ourShip = ship;
 				master.ship = ship;
 				
@@ -128,7 +125,8 @@ public class LITBOIZ extends TeamClient {
 				else {
 					AbstractAction action = getFlagShipAction(space, ship);
 					actions.put(ship.getId(), action);
-				}			
+				}	
+				master.aStarCounter++;
 				
 			} else {
 				// it is a base.  Heuristically decide when to use the shield (TODO)
@@ -170,22 +168,14 @@ public class LITBOIZ extends TeamClient {
 		AbstractAction newAction = null;
 		
 		//determine if ship is carrying flag
-		Iterator<Flag> iter = space.getFlags().iterator();
-		while(iter.hasNext()){
-			Flag flag = iter.next();
-			if(ship.isCarryingFlag()) {
-//				System.out.println("GOT THE FLAG");
-				return returnToBaseAction(space, ship);
-			}
+		if(ship.isCarryingFlag()) {
+//			System.out.println("GOT THE FLAG");
+			return returnToBaseAction(space, ship);
 		}
 		
 		//if ship is dead, set a new action
-		if(!ourShip.isAlive()){
-			
+		if(!ourShip.isAlive()){		
 			//clear graph and movement stack
-//			edges = null;
-//			nodes = null;
-//			master.stack.clear();
 			newAction = getFlagAction(space, ship);
 		}
 		// aim for a beacon if there isn't enough energy
@@ -206,7 +196,6 @@ public class LITBOIZ extends TeamClient {
 	}
 	
 	public AbstractAction returnToBaseAction(Toroidal2DPhysics space, Ship ship){
-		AbstractAction newAction = null;
 		Position currentPosition = ship.getPosition();
 		
 		Base base = Mastermind.findNearestBase(space, ship);
@@ -216,12 +205,10 @@ public class LITBOIZ extends TeamClient {
 
 		Position basePos = base.getPosition();
         if(basePos.getX() == currentPosition.getX()){ //prevent infinite slope
-            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
-        } else { 
-        	newAction = getAStarPathToGoal(space, ship, basePos);
+            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, base);
+        } else {
+        	return getMoveToObjectAction(space, ship, base);
         }
-
-		return newAction;
 	}
 	
 	/**
@@ -249,7 +236,7 @@ public class LITBOIZ extends TeamClient {
 	        if(beaconPos.getX() == currentPosition.getX()){ //prevent infinite slope
 	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentBeacon);
 	        } else { //directly target beacon
-	        	newAction = getAStarPathToGoal(space, ship, beaconPos);	
+	        	return getMoveToObjectAction(space, ship, currentBeacon);
 	        }
 		}	
 		
@@ -269,40 +256,38 @@ public class LITBOIZ extends TeamClient {
 		master.currentTarget = currentEnemy;
 		master.setCurrentAction(master.ACTION_CHASE_ENEMY);
 
-		AbstractAction newAction = null;
-
 		if (currentEnemy == null) {
 			//if no enemy, go to beacon
-			newAction = getBeaconAction(space, ship);	
+			return getBeaconAction(space, ship);	
 		} 
 		else {
 	        Position enemyPos = currentEnemy.getPosition();
 	        double distanceToEnemy = space.findShortestDistance(enemyPos, currentPosition);
 	        if(Math.abs(enemyPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
+	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	        }
 	        else if(distanceToEnemy < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	            targetedPosition = null;
+	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentEnemy);
 	        }
 	        else{   	
-				
 				//Store enemy position
 				master.setOldEnemyPosition(enemyPos);
 				
 				//set action
 //	    		targetedPosition = target;
-	        	newAction = getAStarPathToGoal(space, ship, enemyPos);	
+				
+				return getMoveToObjectAction(space, ship, currentEnemy);
 	        }
 		}
-		return newAction;
 	}
 	
 	private AbstractAction getAsteroidCollectorAction(Toroidal2DPhysics space,
 			Ship ship) {
+		//set A* counter higher for resource collectors
+		master.aStarCounterReplan = 30;
 		Position currentPosition = ship.getPosition();
 		Asteroid currentAsteroid = Mastermind.pickHighestValueFreeAsteroid(space, ship);
-//		System.out.println(currentFlag);
 		master.currentTarget = currentAsteroid;
 		master.setCurrentAction(master.ACTION_FIND_RESOURCE);
 
@@ -341,99 +326,58 @@ public class LITBOIZ extends TeamClient {
 	        	return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentAsteroid);
 	        }
 	        else{ 
-	        	return getAStarPathToGoal(space, ship, asteroidPos);	
+	        	return getMoveToObjectAction(space, ship, currentAsteroid);
 	        }
-			//newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, asteroid);
 		} else {
 			return ship.getCurrentAction();
 		}
 
 	}
 	
+	public AbstractAction getMoveToObjectAction(Toroidal2DPhysics space, Ship ship, AbstractObject goal){
+		if(space.isPathClearOfObstructions(ship.getPosition(), goal.getPosition(), 
+				master.getAllObstructionsBetweenAbstractObjects(space, goal), ship.getRadius())){
+			return new LITBOIZMOVEACTION(space, ship.getPosition(), goal.getPosition());
+		}
+		else if(master.aStarCounter >= master.aStarCounterReplan){
+    		master.aStarCounter = 0;
+    		return getAStarPathToGoal(space, ship, goal.getPosition());	
+    	} else {
+    		return ship.getCurrentAction();
+    	}
+	}
+	
 	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
 		Position currentPosition = ship.getPosition();
 		currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
-//		System.out.println(currentFlag);
 		master.currentTarget = currentFlag;
 		master.setCurrentAction(master.ACTION_FIND_FLAG);
 
-		AbstractAction newAction = null;
-
 		if (currentFlag == null) {
-			// TODO: if no flag, kill everybody
 			//if no flag, go to beacon
 			if(ship.getEnergy() < 1000){
-				newAction = getBeaconAction(space, ship);
+				return getBeaconAction(space, ship);
 			} else {
-				newAction = getChaseAction(space, ship);
+				// kill everybody
+				return getChaseAction(space, ship);
 			}
-				
 		} 
 		else {
 	        Position flagPos = currentFlag.getPosition();
 	        double distanceToFlag = space.findShortestDistance(flagPos, currentPosition);
 	        if(Math.abs(flagPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
+	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
 	        }
 	        else if(distanceToFlag < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
-	            newAction = new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
 	            targetedPosition = null;
+	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);   
 	        }
 	        else{ 
-	        	newAction = getAStarPathToGoal(space, ship, flagPos);	
+	        	return getMoveToObjectAction(space, ship, currentFlag);
 	        }
 		}
-		return newAction;
 	}
 	
-	/**
-	 * Gets the action that will deal with the beacon 
-	 * @param space the current space environment
-	 * @param ship our spacecraft that the simulator passes in
-	 * @param currentPosition of ship
-	 * @param initialTarget 
-	 * @param counter that triggers A*
-	 * @return newAction 
-	 */
-//	public Position getAStarPosition(Toroidal2DPhysics space, Ship ship,
-//			Position currentPosition, Position initialTarget, int counter){
-//		Position target;
-//		
-//		//will calculate A* when counter is 10 or stack is empty
-//		if(counter == Mastermind.aStarCounter || master.stack.isEmpty()){
-//			ArrayList<Position> testPositions = master.getAlternatePoints(space, ship, currentPosition, initialTarget, 0);
-////			master.stack =  master.aStar(currentPosition, initialTarget, testPositions, space);
-//			
-//			target = (!master.stack.isEmpty()) ? master.stack.pop().position : initialTarget;
-//    		master.aStarCurrentPosition = target;
-//    		
-//    		//reset whichever counter aStar is using
-//    		if(master.getCurrentAction().equals(master.ACTION_CHASE_ENEMY)){
-//    			master.aStarEnemyCounter = 0;
-//    		}
-//    		else if (master.getCurrentAction().equals(master.ACTION_FIND_BEACON)) {
-//    			master.aStarBeaconCounter = 0;
-//    		}
-//    		else if (master.getCurrentAction().equals(master.ACTION_FIND_FLAG)) {
-//    			master.aStarFlagCounter = 0;
-//    		}
-//		} 
-//		//if a Node is on the stack, go to that Position
-//		else {
-//			//if ship is approaching current target
-//    		if(space.findShortestDistance(currentPosition, master.aStarCurrentPosition) < Mastermind.aStarDistanceThreshold){
-//    			target = master.stack.pop().position;
-//    			master.aStarCurrentPosition = target;
-//    		} else { //resume course to Node on top of A* stack
-//    			//TODO
-//    			//target node might be removed too early
-//    			
-//    			target = master.aStarCurrentPosition;
-//    		}
-//		}
-//		targetedPosition = target;
-//		return target;
-//	}
 
 	@Override
 	public void getMovementEnd(Toroidal2DPhysics space, Set<AbstractActionableObject> actionableObjects) {
@@ -454,46 +398,6 @@ public class LITBOIZ extends TeamClient {
 	//called when simulator shuts down
 	@Override
 	public void shutDown(Toroidal2DPhysics space) {
-		// write score & alleles to file 
-		double score = 0;
-		for (ImmutableTeamInfo team : space.getTeamInfo()){
-			if (team.getTeamName().equals("LITBOIZ")){
-				score = team.getScore();
-			}
-		}
-
-        FileWriter fileWriter = null;
-
-        try {
-            fileWriter = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITCSV.csv", true);
-            fileWriter.append(Double.toString(score) + ",");
-            fileWriter.append(Integer.toString(Mastermind.rateOfFireFast) + ",");
-            fileWriter.append(Integer.toString(Mastermind.rateOfFireSlow) + ",");
-            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdClose) + ",");
-            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdMedium) + ",");
-            fileWriter.append(Integer.toString(Mastermind.enemyDistanceThresholdFar) + ",");
-            fileWriter.append(Integer.toString(Mastermind.aStarDistanceThreshold)+ ",");
-            fileWriter.append(Integer.toString(Mastermind.aStarCounter) + "\n");
-
-            //System.out.println("CSV file was updated successfully !!!");
-
-        } catch (Exception e) {
-            System.out.println("Error when writing to file");
-            e.printStackTrace();
-        } finally {
-
-            try {
-                fileWriter.flush();
-                fileWriter.close();
-
-            } catch (IOException e) {
-
-                System.out.println("Error when closing file writer");
-                e.printStackTrace();
-            }
-
-        }
-
 	}
 
 	/**
@@ -502,17 +406,16 @@ public class LITBOIZ extends TeamClient {
 	 */
 	@Override
 	public Set<SpacewarGraphics> getGraphics() {
-		//if(targetedPosition == null) return null;
 		
 		HashSet<SpacewarGraphics> set = new HashSet<>();
 		
-//		if (graphByShip != null) {
-//			for (Graph graph : graphByShip.values()) {
-//				// uncomment to see the full graph
-//				set.addAll(graph.getAllGraphics());
-//				set.addAll(graph.getSolutionPathGraphics());
-//			}
-//		}
+		if (graphByShip != null) {
+			for (Graph graph : graphByShip.values()) {
+				// uncomment to see the full graph
+				//set.addAll(graph.getAllGraphics());
+				set.addAll(graph.getSolutionPathGraphics());
+			}
+		}
 		
 		Set<UUID> keys = shipList.keySet();
 		for(UUID id : keys){
@@ -539,28 +442,6 @@ public class LITBOIZ extends TeamClient {
 					break;
 			}
 		}
-		//set.add(new CircleGraphics(20, Color.RED, targetedPosition));
-//		if(!master.stack.isEmpty()){
-//			//make a copy
-//			Stack<Node> copyStack = (Stack<Node>) master.stack.clone();
-//			//pop all off and display
-//			for(Node n : copyStack){
-//				set.add(new CircleGraphics(10, Color.GREEN, n.position));
-//			}
-//		}
-//		if(edges != null){
-//			for(Edge e : edges){
-//				set.add(new LineGraphics(e.start.position, 
-//						e.end.position, 
-//						space.findShortestDistanceVector(e.start.position, e.end.position)));
-//			}
-//		}
-//		
-//		if(nodes != null){
-//			for(Node n : nodes){
-//				//set.add(new CircleGraphics(10, Color.BLUE, n.position));
-//			}
-//		}
 		HashSet<SpacewarGraphics> newSetClone = (HashSet<SpacewarGraphics>) set.clone();
 		set.clear();
 		return newSetClone;
@@ -587,10 +468,6 @@ public class LITBOIZ extends TeamClient {
 				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(1)) < 3
 				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(2)) < 3
 				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(3)) < 3){
-//			if(asteroidCollectorPos.equalsLocationOnly(basePositions.get(0))
-//					|| asteroidCollectorPos.equalsLocationOnly(basePositions.get(1))
-//					|| asteroidCollectorPos.equalsLocationOnly(basePositions.get(2))
-//					|| asteroidCollectorPos.equalsLocationOnly(basePositions.get(3))){
 				System.out.println("im here");
 				purchases.put(asteroidCollectorID, PurchaseTypes.BASE);
 				bought_base = true;

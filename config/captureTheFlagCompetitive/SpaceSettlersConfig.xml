@@ -53,7 +53,7 @@
 	<bases>
 	    <BaseConfig>
 			<teamName>#LITBOIZ (Luis n Brian)</teamName>
-			<fixedLocation>true</fixedLocation>
+			<fixedLocation>false</fixedLocation>
 			<x>800</x>
 			<y>640</y>
 			<boundingBoxULX>650</boundingBoxULX>

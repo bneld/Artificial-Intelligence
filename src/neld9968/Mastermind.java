@@ -59,22 +59,10 @@ public class Mastermind {
 	private Position oldEnemyPosition;
 	public Ship ship;
 	public int timeout = 0;
-	// stack that holds each node in graph
-//	public Stack<Node> stack;
 	public Position aStarCurrentPosition;
 	
-	public int aStarEnemyCounter = 0;
-	public int aStarBeaconCounter = 0;
-	public int aStarBaseCounter = 0;
-	public int aStarResourceCounter = 0;
-	public int aStarFlagCounter = 0;
+	public int aStarCounter = 0;
 	public AbstractObject currentTarget;
-	
-	//chromosome parameters
-	//static LITCHROMOSOME currentChromosome = initChromosome();
-	
-	//use genetic algorithm best parameters
-	//static LITCHROMOSOME currentChromosome = new LITCHROMOSOME(17, 66, 43, 185, 317, 136, 10);
 
 	public static int rateOfFireFast = 17;
 	public static int rateOfFireSlow = 66;
@@ -82,10 +70,9 @@ public class Mastermind {
 	public static int enemyDistanceThresholdMedium = 185;
 	public static int enemyDistanceThresholdFar = 317;
 	public static int aStarDistanceThreshold = 136;
-	public static int aStarCounter = 10;
+	public int aStarCounterReplan = 20;
 	
 	public Mastermind(){
-//		stack = new Stack<>();
 	}
 	
 	/**
