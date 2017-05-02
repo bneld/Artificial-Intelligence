@@ -439,7 +439,9 @@ public class Toroidal2DPhysics {
 	 */
 	public boolean isLocationFree(Position location, int radius) {
 		for (AbstractObject object : allObjects) {
-			if (findShortestDistanceVector(object.getPosition(), location).getMagnitude() <= (radius + object.getRadius())) {
+			// fixed bug where it only checked radius and not diameter
+			if (findShortestDistanceVector(object.getPosition(), location).getMagnitude() <= 
+					(radius + (2 * object.getRadius()))) {
 				return false;
 			}
 		}
@@ -913,6 +915,8 @@ public class Toroidal2DPhysics {
 					}
 					
 				} else {
+					// note this is time 2 in order to ensure objects don't spawn touching (and just to get
+					// them a bit farther apart
 					newPosition = getRandomFreeLocation(random, object.getRadius() * 2);
 				}
 				
