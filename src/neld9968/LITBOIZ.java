@@ -186,7 +186,7 @@ public class LITBOIZ extends TeamClient {
 		}	
 		
 		master.setOldShipEnergy(ship.getEnergy());
-		return newAction;
+		return newAction; 
 	}
 	
 	public AbstractAction returnToBaseAction(Toroidal2DPhysics space, Ship ship){
