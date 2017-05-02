@@ -1,33 +1,21 @@
 package neld9968;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-import java.util.Stack;
 import java.util.UUID;
 
 import spacesettlers.actions.*;
 import spacesettlers.objects.*;
 import spacesettlers.objects.powerups.*;
 import spacesettlers.objects.resources.*;
-import spacesettlers.objects.weapons.EMP;
-import spacesettlers.objects.weapons.Missile;
-import spacesettlers.clients.TeamClient;
-import spacesettlers.clients.ImmutableTeamInfo;
-import spacesettlers.clients.Team;
-import spacesettlers.graphics.CircleGraphics;
-import spacesettlers.graphics.LineGraphics;
-import spacesettlers.graphics.SpacewarGraphics;
+import spacesettlers.objects.weapons.*;
+import spacesettlers.clients.*;
+import spacesettlers.graphics.*;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.Position;
 
@@ -39,12 +27,15 @@ import spacesettlers.utilities.Position;
  * @author Luis and Brian
  */
 public class LITBOIZ extends TeamClient {
+	public static int ENERGY_THRESHOLD = 600;
 	boolean isFirst = true;
 	HashMap <UUID, Ship> asteroidToShipMap;
 	UUID asteroidCollectorID;
+	UUID asteroidCollectorID2;
 	Ship ourShip;
 	Flag currentFlag;
 	boolean canBuyBase = false;
+	int numShips = 3;
 	boolean TLSpotAvailable = true;
 	boolean TRSpotAvailable = true;
 	boolean BLSpotAvailable = true;
@@ -65,7 +56,7 @@ public class LITBOIZ extends TeamClient {
 	int REPLAN_STEPS = 20;
 
 	/**
-	 * Assigns ships to be attack or resource ships (currently only 1 attack ship)
+	 * Assigns ships to be attack or resource ships
 	 * @param space
 	 * @param actionableObjects
 	 * return actions for the ship
@@ -74,10 +65,7 @@ public class LITBOIZ extends TeamClient {
 			Set<AbstractActionableObject> actionableObjects) {
 		HashMap<UUID, AbstractAction> actions = new HashMap<UUID, AbstractAction>();
 
-		boolean TLSpotAvailable = true;
-		boolean TRSpotAvailable = true;
-		boolean BLSpotAvailable = true;
-		boolean BRSpotAvailable = true;
+		TLSpotAvailable = TRSpotAvailable = BLSpotAvailable = BRSpotAvailable = true;
 		
 		for(Base b : space.getBases()) {
 			if(space.findShortestDistance(b.getPosition(), basePositions.get(0)) < 3) {
@@ -179,7 +167,7 @@ public class LITBOIZ extends TeamClient {
 			newAction = getFlagAction(space, ship);
 		}
 		// aim for a beacon if there isn't enough energy
-		else if (ship.getEnergy() < 300) {
+		else if (ship.getEnergy() < ENERGY_THRESHOLD) {
 			newAction = getBeaconAction(space, ship);
 		}
 
@@ -442,6 +430,10 @@ public class LITBOIZ extends TeamClient {
 					break;
 			}
 		}
+//		for(Position x : basePositions){
+//			set.add(new CircleGraphics(4, Color.YELLOW, x));
+//			//set.add(new CircleGraphics(2, Color.RED, new Position(x.getX(), x.getY() + 3)));
+//		}
 		HashSet<SpacewarGraphics> newSetClone = (HashSet<SpacewarGraphics>) set.clone();
 		set.clear();
 		return newSetClone;
@@ -458,51 +450,60 @@ public class LITBOIZ extends TeamClient {
 			PurchaseCosts purchaseCosts) {
 
 		HashMap<UUID, PurchaseTypes> purchases = new HashMap<UUID, PurchaseTypes>();
-		boolean bought_base = false;
-		canBuyBase = purchaseCosts.canAfford(PurchaseTypes.BASE, resourcesAvailable);
-		if (canBuyBase) {
-			Position asteroidCollectorPos = shipList.get(asteroidCollectorID).getPosition();
-			System.out.println("trying to buy base");
-			System.out.println(asteroidCollectorPos);
-			if(space.findShortestDistance(asteroidCollectorPos, basePositions.get(0)) < 3
-				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(1)) < 3
-				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(2)) < 3
-				|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(3)) < 3){
-				System.out.println("im here");
-				purchases.put(asteroidCollectorID, PurchaseTypes.BASE);
-				bought_base = true;
-				System.out.println("Buying a base!!");
-			}		
-		}
-		
-		// see if you can buy EMPs
-		if (purchaseCosts.canAfford(PurchaseTypes.POWERUP_EMP_LAUNCHER, resourcesAvailable)) {
-			for (AbstractActionableObject actionableObject : actionableObjects) {
-				if (actionableObject instanceof Ship) {
-					Ship ship = (Ship) actionableObject;
-					
-					if (!ship.getId().equals(asteroidCollectorID) && !ship.isValidPowerup(PurchaseTypes.POWERUP_EMP_LAUNCHER.getPowerupMap())) {
-						purchases.put(ship.getId(), PurchaseTypes.POWERUP_EMP_LAUNCHER);
-					}
-				}
-			}		
-		} 
-		
 
 		// can I buy a ship?
-		if (purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable) && bought_base == false) {
+		if (numShips < 6 && purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable)) {
 			for (AbstractActionableObject actionableObject : actionableObjects) {
 				if (actionableObject instanceof Base) {
 					Base base = (Base) actionableObject;
-					
+					numShips++;
 					purchases.put(base.getId(), PurchaseTypes.SHIP);
 					break;
 				}
 
 			}
 
+		}		
+		if(numShips >= 6){
+			canBuyBase = purchaseCosts.canAfford(PurchaseTypes.BASE, resourcesAvailable);
+			if (canBuyBase) {
+				
+				//find asteroid collector ship
+				Position asteroidCollectorPos = null;
+				for(AbstractActionableObject obj : actionableObjects){
+					if(obj.getId().equals(asteroidCollectorID)){
+						asteroidCollectorPos = obj.getPosition();
+					}
+				}
+				if(asteroidCollectorPos == null){
+					//gets the position of the outdated Ship object
+					asteroidCollectorPos = shipList.get(asteroidCollectorID).getPosition();
+				}
+				
+	//			System.out.println("trying to buy base");
+	//			System.out.println(asteroidCollectorPos);
+				if(space.findShortestDistance(asteroidCollectorPos, basePositions.get(0)) < 3
+					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(1)) < 3
+					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(2)) < 3
+					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(3)) < 3){
+					purchases.put(asteroidCollectorID, PurchaseTypes.BASE);
+					System.out.println("Buying a base!!");
+				}		
+			}
 		}
-
+		
+		// see if you can buy EMPs
+//		if (purchaseCosts.canAfford(PurchaseTypes.POWERUP_EMP_LAUNCHER, resourcesAvailable)) {
+//			for (AbstractActionableObject actionableObject : actionableObjects) {
+//				if (actionableObject instanceof Ship) {
+//					Ship ship = (Ship) actionableObject;
+//					
+//					if (!ship.getId().equals(asteroidCollectorID) && !ship.isValidPowerup(PurchaseTypes.POWERUP_EMP_LAUNCHER.getPowerupMap())) {
+//						purchases.put(ship.getId(), PurchaseTypes.POWERUP_EMP_LAUNCHER);
+//					}
+//				}
+//			}		
+//		} 
 		return purchases;
 	}
 

@@ -1,31 +1,13 @@
 package neld9968;
 
-import spacesettlers.objects.AbstractObject;
-import spacesettlers.objects.Asteroid;
-//import spacesettlers.objects.Asteroid;
-import spacesettlers.objects.Base;
-import spacesettlers.objects.Beacon;
-import spacesettlers.objects.Flag;
-import spacesettlers.objects.Ship;
+import spacesettlers.objects.*;
 import spacesettlers.simulator.Toroidal2DPhysics;
-import spacesettlers.utilities.Position;
-import spacesettlers.utilities.Vector2D;
+import spacesettlers.utilities.*;
 import spacesettlers.objects.weapons.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.Stack;
 
 
 /**
@@ -51,7 +33,7 @@ public class Mastermind {
 	public static final double[] DEGREES_45_TO_85_BY_FIVE = {0.785398, 0.872665, 0.959931, 1.0472, 1.13446
 		                                                         , 1.22173, 1.309, 1.39626, 1.48353};
 	private String currentAction = "";
-	// saves enery of ship at previous state in time
+	// saves energy of ship at previous state in time
 	private double oldShipEnergy = Double.MIN_VALUE;
 	// counter that controls fire rate of agent
 	private int fireTimer;
