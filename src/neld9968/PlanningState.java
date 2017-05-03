@@ -15,7 +15,7 @@ public class PlanningState {
 	public HashMap<Ship, Flag> chasingMap;
 	public HashMap<Ship, Flag> haveMap;
 	public HashMap<Ship, Double> energyMap;
-	public HashMap<String, Integer> flagsMap;
+	public HashMap<String, Double> flagsMap;
 	
 	public PlanningState(Toroidal2DPhysics space){
 		this.space = space;
@@ -29,11 +29,14 @@ public class PlanningState {
 		this.chasingMap = (HashMap<Ship, Flag>) state.chasingMap.clone();
 		this.haveMap = (HashMap<Ship, Flag>) state.haveMap.clone();
 		this.energyMap = (HashMap<Ship, Double>) state.energyMap.clone();
-		this.flagsMap = (HashMap<String, Integer>) state.flagsMap.clone();
+		this.flagsMap = (HashMap<String, Double>) state.flagsMap.clone();
 	}
-	public static PlanningState initialState(Toroidal2DPhysics space, 
+	
+	public static PlanningState getInitialState(Toroidal2DPhysics space, 
 			Set<AbstractActionableObject> ourShips){
 		PlanningState initState = new PlanningState(space);
+		
+		//set energy for each of our ships
 		for (AbstractObject actionable :  ourShips) {
 			if (actionable instanceof Ship) {
 				Ship ship = (Ship) actionable;
@@ -41,10 +44,13 @@ public class PlanningState {
 				initState.energyMap.put(ship, ship.getEnergy());
 			}
 		}
-		//
+		
+		//set score for each team
 		for(ImmutableTeamInfo teamInfo : space.getTeamInfo()){
-			
+			initState.flagsMap.put(teamInfo.getTeamName(), teamInfo.getScore());
 		}
+		
+		return initState;
 	}
-	public static Set<AbstractObject>
+	//public static Set<AbstractObject>
 }

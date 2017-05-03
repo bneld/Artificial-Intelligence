@@ -41,6 +41,10 @@ public class LITBOIZ extends TeamClient {
 	boolean BLSpotAvailable = true;
 	boolean BRSpotAvailable = true;
 	
+	//Planning
+	Planning planning;
+	PlanningState currentState;
+	
 	Beacon currentBeacon;
 	Beacon oldBeacon;
 	Position targetedPosition;
@@ -63,6 +67,10 @@ public class LITBOIZ extends TeamClient {
 	 */
 	public Map<UUID, AbstractAction> getMovementStart(Toroidal2DPhysics space,
 			Set<AbstractActionableObject> actionableObjects) {
+		
+		//Planning
+		planning.update(space, actionableObjects);
+		
 		HashMap<UUID, AbstractAction> actions = new HashMap<UUID, AbstractAction>();
 
 		TLSpotAvailable = TRSpotAvailable = BLSpotAvailable = BRSpotAvailable = true;
@@ -292,9 +300,20 @@ public class LITBOIZ extends TeamClient {
 			} 
 		}
 
-		if(ship.getEnergy() < 1000){
-			return getBeaconAction(space, ship);
-		} 
+			if(ship.getEnergy() < 1000) {
+				Base closestBase = Mastermind.findNearestBase(space, ship);
+				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
+	
+				// find shortest healing object
+				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
+						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
+						|| closestBase.getEnergy() < 50) { 
+					return getBeaconAction(space, ship);
+				} else {
+					return returnToBaseAction(space, ship);
+				}
+			}
+
 
 		// if the ship has enough resourcesAvailable, take it back to base
 		if (ship.getResources().getTotal() > 500) {
@@ -343,8 +362,19 @@ public class LITBOIZ extends TeamClient {
 
 		if (currentFlag == null) {
 			//if no flag, go to beacon
-			if(ship.getEnergy() < 1000){
-				return getBeaconAction(space, ship);
+			if(ship.getEnergy() < 1000) {
+				
+				Base closestBase = Mastermind.findNearestBase(space, ship);
+				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
+
+				// find shortest healing object
+				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
+						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
+						|| closestBase.getEnergy() < 50) { 
+					return getBeaconAction(space, ship);
+				} else {
+					return returnToBaseAction(space, ship);
+				}
 			} else {
 				// kill everybody
 				return getChaseAction(space, ship);
@@ -381,6 +411,8 @@ public class LITBOIZ extends TeamClient {
 		basePositions.add(new Position(1450,250));
 		basePositions.add(new Position(150,800));
 		basePositions.add(new Position(1450,800));
+		
+		planning = new Planning();
 	}
 
 	//called when simulator shuts down
