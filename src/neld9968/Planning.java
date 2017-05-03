@@ -14,6 +14,7 @@ public class Planning {
 		this.space = space;
 		initialState = new PlanningState(space);
 		
+		
 	}
 	
 }
