@@ -37,9 +37,6 @@ public class LITBOIZMOVETOOBJECTACTION extends LITBOIZMOVEACTION {
 		return goalObject;
 	}
 
-
-
-
 	/**
 	 * Returns true if the movement finished or the goal object died or moved
 	 * 

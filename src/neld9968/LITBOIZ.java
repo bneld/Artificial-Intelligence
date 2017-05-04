@@ -163,11 +163,19 @@ public class LITBOIZ extends TeamClient {
 		master.incFireTimer(); //TODO
 		AbstractAction newAction = null;
 		
-		//determine if ship is carrying flag
-		if(ship.isCarryingFlag()) {
-//			System.out.println("GOT THE FLAG");
-			return returnToBaseAction(space, ship);
+		if(ship.isCarryingFlag()){
+			planning.currentState.haveMap.put(ship, ship.getFlag());
+			boolean isReturning = planning.returnFlag(ship, ship.getFlag());
+			if(isReturning){
+				return returnToBaseAction(space, ship);
+			}
 		}
+		
+		//determine if ship is carrying flag
+//		if(ship.isCarryingFlag()) {
+////			System.out.println("GOT THE FLAG");
+//			return returnToBaseAction(space, ship);
+//		}
 		
 		//if ship is dead, set a new action
 		if(!ourShip.isAlive()){		
@@ -413,7 +421,7 @@ public class LITBOIZ extends TeamClient {
 		basePositions.add(new Position(150,800));
 		basePositions.add(new Position(1450,800));
 		
-		planning = new Planning();
+		planning = new Planning(space);
 	}
 
 	//called when simulator shuts down

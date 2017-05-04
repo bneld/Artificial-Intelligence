@@ -13,18 +13,15 @@ public class Planning {
 	PlanningState initialState;
 	PlanningState currentState;
 	
-	public Planning(){
-		
-	}
 	public Planning(Toroidal2DPhysics space){
 		this.space = space;
-		initialState = PlanningState.getInitialState(space, actionableObjects);
-		currentState = new PlanningState(initialState);
 	}
 	
-	public void update(Toroidal2DPhysics space, Set<AbstractActionableObject> actionableObjects, PlanningState currentState){
+	public void update(Toroidal2DPhysics space, Set<AbstractActionableObject> actionableObjects){
 		this.space = space;
 		this.actionableObjects = actionableObjects;
+		initialState = PlanningState.getInitialState(space, actionableObjects);
+		currentState = new PlanningState(initialState);
 	}
 	
 	public void getPossibleActions(PlanningState state){
