@@ -300,25 +300,26 @@ public class LITBOIZ extends TeamClient {
 			} 
 		}
 
-			if(ship.getEnergy() < 1000) {
-				Base closestBase = Mastermind.findNearestBase(space, ship);
-				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
+			//if(ship.getEnergy() < 1000) {
+//				Base closestBase = Mastermind.findNearestBase(space, ship);
+//				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
 	
 				// find shortest healing object
-				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
-						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
-						|| closestBase.getEnergy() < 50) { 
-					return getBeaconAction(space, ship);
-				} else {
-					return returnToBaseAction(space, ship);
-				}
-			}
+//				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
+//						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
+//						|| closestBase.getEnergy() < 50) { 
+//					return getBeaconAction(space, ship);
+//				} else {
+//					return returnToBaseAction(space, ship);
+//				}
+			//}
+		//planning.
 
 
 		// if the ship has enough resourcesAvailable, take it back to base
-		if (ship.getResources().getTotal() > 500) {
-			return returnToBaseAction(space, ship);
-		}
+//		if (ship.getResources().getTotal() > 500) {
+//			return returnToBaseAction(space, ship);
+//		}
 
 		// otherwise aim for the asteroid
 		
@@ -336,7 +337,7 @@ public class LITBOIZ extends TeamClient {
 	        	return getMoveToObjectAction(space, ship, currentAsteroid);
 	        }
 		} else {
-			return ship.getCurrentAction();
+			return ship.getCurrentAction();// TODO this is the default 
 		}
 
 	}

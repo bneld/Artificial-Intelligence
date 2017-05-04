@@ -6,6 +6,7 @@ import java.util.Set;
 import spacesettlers.clients.ImmutableTeamInfo;
 import spacesettlers.objects.AbstractActionableObject;
 import spacesettlers.objects.AbstractObject;
+import spacesettlers.objects.Asteroid;
 import spacesettlers.objects.Flag;
 import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
@@ -16,6 +17,7 @@ public class PlanningState {
 	public HashMap<Ship, Flag> haveMap;
 	public HashMap<Ship, Double> energyMap;
 	public HashMap<String, Double> flagsMap;
+	public HashMap<Ship, Asteroid> collectingMap;
 	
 	public PlanningState(Toroidal2DPhysics space){
 		this.space = space;
@@ -23,6 +25,7 @@ public class PlanningState {
 		this.haveMap = new HashMap<>();
 		this.energyMap = new HashMap<>();
 		this.flagsMap = new HashMap<>();
+		this.collectingMap = new HashMap<>();
 	}
 	public PlanningState(PlanningState state){
 		this.space = state.space;
@@ -30,6 +33,7 @@ public class PlanningState {
 		this.haveMap = (HashMap<Ship, Flag>) state.haveMap.clone();
 		this.energyMap = (HashMap<Ship, Double>) state.energyMap.clone();
 		this.flagsMap = (HashMap<String, Double>) state.flagsMap.clone();
+		this.collectingMap = (HashMap<Ship, Asteroid>) state.collectingMap.clone();
 	}
 	
 	public static PlanningState getInitialState(Toroidal2DPhysics space, 
