@@ -34,16 +34,14 @@ public class Mastermind {
 		                                                         , 1.22173, 1.309, 1.39626, 1.48353};
 	private String currentAction = "";
 	// saves energy of ship at previous state in time
-	private double oldShipEnergy = Double.MIN_VALUE;
 	// counter that controls fire rate of agent
 	private int fireTimer;
 	
-	private Position oldEnemyPosition;
 	public Ship ship;
 	public int timeout = 0;
 	public Position aStarCurrentPosition;
 	
-	public int aStarCounter = 0;
+	public int aStarCounter = 30;
 	public AbstractObject currentTarget;
 
 	public static int rateOfFireFast = 17;
@@ -71,19 +69,6 @@ public class Mastermind {
 	 */
 	public void setCurrentAction(String action) {
 		currentAction = action;
-	}
-	
-	/**
-	 * Gets the energy of the ship at the last time interval.
-	 * @return oldShipEnergy 
-	 */
-	public double getOldShipEnergy() {
-		return oldShipEnergy;
-	}
-	
-	/**Sets the energy of the ship at the last time interval.*/ 
-	public void setOldShipEnergy(double energy) {
-		oldShipEnergy = energy;
 	}
 	
 	/**
@@ -208,7 +193,6 @@ public class Mastermind {
 			}
 			
 			// find shortest distance of ships
-			System.out.println("TARGETING FLAG GUY");
 			double distance = space.findShortestDistance(ship.getPosition(), otherShip.getPosition());
 			if (distance < minDistance) {
 				minDistance = distance;
@@ -231,6 +215,59 @@ public class Mastermind {
 		
 		// loop through all ships
 		for (Flag flag : space.getFlags()) {
+			
+			// don't aim for our own team (or ourself)
+			//also only aim for flags that are not taken yet
+			if (flag.getTeamName().equals(ship.getTeamName())
+					|| flag.isBeingCarried()) {
+				continue;
+			}
+			// find shortest distance of ships
+			double distance = space.findShortestDistance(ship.getPosition(), flag.getPosition());
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestFlag = flag;
+			}
+		}
+		
+		return nearestFlag;
+	}
+	
+	/**
+	 * Find the nearest flag on another team and aim for it
+	 * @param space
+	 * @param ship
+	 * @return flag
+	 */
+	public static Flag getCarriedFlag(Toroidal2DPhysics space, Ship ship) {
+		double minDistance = Double.POSITIVE_INFINITY;
+		Flag nearestFlag = null;
+		
+		// loop through all flags
+		for (Flag flag : space.getFlags()) {
+			
+			// don't aim for our own team (or ourself)
+			//also only aim for flags that are not taken yet
+			if (flag.getTeamName().equals(ship.getTeamName())) {
+				continue;
+			}
+			// find shortest distance of ships
+			double distance = space.findShortestDistance(ship.getPosition(), flag.getPosition());
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestFlag = flag;
+			}
+		}
+		
+		return nearestFlag;
+	}
+	
+	public static Flag findClosestEnemyFlagInSet(Toroidal2DPhysics space, Ship ship, Set<Flag> set){
+		double minDistance = Double.POSITIVE_INFINITY;
+		Flag nearestFlag = null;
+		
+		// loop through all ships
+		for (Flag flag : set) {
 			
 			// don't aim for our own team (or ourself)
 			//also only aim for flags that are not taken yet
@@ -377,22 +414,6 @@ public class Mastermind {
         double newY = slope*(newX - current.getX()) + current.getY(); // create new y coordinate
         return new Position(newX, newY); // create new position        
     }
-
-	/**
-	 * returns old enemy position
-	 * @return oldEnemyPosition 
-	 */
-	public Position getOldEnemyPosition() {
-		return oldEnemyPosition;
-	}
-
-	/**
-	 * sets old enemy position
-	 * @param oldEnemyPosition
-	 */
-	public void setOldEnemyPosition(Position oldEnemyPosition) {
-		this.oldEnemyPosition = oldEnemyPosition;
-	}
 	
 	/**
 	 * a* search algorithm. returns stack of all nodes in graph

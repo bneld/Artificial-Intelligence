@@ -2,6 +2,7 @@ package neld9968;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.UUID;
 
 import spacesettlers.clients.ImmutableTeamInfo;
 import spacesettlers.objects.AbstractActionableObject;
@@ -12,12 +13,14 @@ import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
 
 public class PlanningState {
+	
+	//state
 	public Toroidal2DPhysics space;
-	public HashMap<Ship, Flag> chasingMap;
-	public HashMap<Ship, Flag> haveMap;
-	public HashMap<Ship, Double> energyMap;
+	public HashMap<UUID, UUID> chasingMap;
+	public HashMap<UUID, UUID> haveMap;
+	public HashMap<UUID, Double> energyMap;
 	public HashMap<String, Double> flagsMap;
-	public HashMap<Ship, Asteroid> collectingMap;
+	public HashMap<UUID, UUID> collectingMap;
 	
 	public PlanningState(Toroidal2DPhysics space){
 		this.space = space;
@@ -29,11 +32,11 @@ public class PlanningState {
 	}
 	public PlanningState(PlanningState state){
 		this.space = state.space;
-		this.chasingMap = (HashMap<Ship, Flag>) state.chasingMap.clone();
-		this.haveMap = (HashMap<Ship, Flag>) state.haveMap.clone();
-		this.energyMap = (HashMap<Ship, Double>) state.energyMap.clone();
+		this.chasingMap = (HashMap<UUID, UUID>) state.chasingMap.clone();
+		this.haveMap = (HashMap<UUID, UUID>) state.haveMap.clone();
+		this.energyMap = (HashMap<UUID, Double>) state.energyMap.clone();
 		this.flagsMap = (HashMap<String, Double>) state.flagsMap.clone();
-		this.collectingMap = (HashMap<Ship, Asteroid>) state.collectingMap.clone();
+		this.collectingMap = (HashMap<UUID, UUID>) state.collectingMap.clone();
 	}
 	
 	public static PlanningState getInitialState(Toroidal2DPhysics space, 
@@ -45,7 +48,7 @@ public class PlanningState {
 			if (actionable instanceof Ship) {
 				Ship ship = (Ship) actionable;
 				//put in initial energies
-				initState.energyMap.put(ship, ship.getEnergy());
+				initState.energyMap.put(ship.getId(), ship.getEnergy());
 			}
 		}
 		
