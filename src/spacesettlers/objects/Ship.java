@@ -161,7 +161,7 @@ public class Ship extends AbstractActionableObject {
 		this.flag = flag;
 		this.carryingFlag = true;
 		this.incrementFlags();
-		System.out.println("Ship " + this + " has a flag now" + flag);
+//		System.out.println("Ship " + this + " has a flag now" + flag);
 	}
 	
 	/**

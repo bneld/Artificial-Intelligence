@@ -50,7 +50,7 @@ public class Mastermind {
 	public static int enemyDistanceThresholdMedium = 185;
 	public static int enemyDistanceThresholdFar = 317;
 	public static int aStarDistanceThreshold = 136;
-	public int aStarCounterReplan = 20;
+	public int aStarCounterReplan = 15;
 	
 	public Mastermind(){
 	}
@@ -284,6 +284,23 @@ public class Mastermind {
 		}
 		
 		return nearestFlag;
+	}
+	
+	public static Asteroid findClosestAsteroidInSet(Toroidal2DPhysics space, Ship ship, Set<Asteroid> set){
+		double minDistance = Double.POSITIVE_INFINITY;
+		Asteroid nearestAsteroid = null;
+		
+		// loop through all ships
+		for (Asteroid asteroid: set) {
+			// find shortest distance of ships
+			double distance = space.findShortestDistance(ship.getPosition(), asteroid.getPosition());
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestAsteroid = asteroid;
+			}
+		}
+		
+		return nearestAsteroid;
 	}
     
 	/**

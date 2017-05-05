@@ -123,13 +123,24 @@ public class AStarSearch  {
 
 		Position position;
 		// add a random set of vertices that are not inside obstacles
-		for (int v = 0; v < numGraphNodes; v++) {
-			double newX = random.nextFloat() * state.getWidth();
-			double newY = random.nextFloat() * state.getHeight();
-			position = new Position(newX, newY);
-			
-			if (inFreeSpace(position, state)) {
-				graph.addVertex(new Vertex(position));
+//		for (int v = 0; v < numGraphNodes; v++) {
+//			double newX = random.nextFloat() * state.getWidth();
+//			double newY = random.nextFloat() * state.getHeight();
+//			position = new Position(newX, newY);
+//			
+//			if (inFreeSpace(position, state)) {
+//				graph.addVertex(new Vertex(position));
+//			}
+//		}
+		for(int row = 0; row < 10; row++){
+			for(int col = 0; col < 20; col++){
+				double newX = ((double)state.getWidth())/20*col;
+				double newY = ((double)state.getHeight())/10*row;
+				position = new Position(newX, newY);
+				
+				if (inFreeSpace(position, state)) {
+					graph.addVertex(new Vertex(position));
+				}
 			}
 		}
 		

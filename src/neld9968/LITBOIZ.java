@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.print.DocFlavor;
+
 import spacesettlers.actions.*;
 import spacesettlers.objects.*;
 import spacesettlers.objects.powerups.*;
@@ -34,6 +36,9 @@ public class LITBOIZ extends TeamClient {
 	Ship ourShip;
 	boolean canBuyBase = false;
 	int numShips = 3;
+	int numBases = 1;
+	int MAX_NUM_SHIPS = 4;
+	int HEALTH_THRESHOLD = 1000;
 	boolean TLSpotAvailable = true;
 	boolean TRSpotAvailable = true;
 	boolean BLSpotAvailable = true;
@@ -65,6 +70,16 @@ public class LITBOIZ extends TeamClient {
 		
 		//Planning
 		planning.update(actionableObjects);
+//		if(!isFirst){
+//			//update haveMap
+//			for(Ship s : space.getShips()){
+//				if(s.getFlag() == null){
+//					planning.currentState.haveMap.put(s.getId(), null);
+//				} else {
+//					planning.currentState.haveMap.put(s.getId(), s.getFlag().getId());
+//				}
+//			}
+//		}
 		
 		HashMap<UUID, AbstractAction> actions = new HashMap<UUID, AbstractAction>();
 
@@ -130,10 +145,7 @@ public class LITBOIZ extends TeamClient {
 		} 
 		return actions;
 	}
-	
 
-
-	
 	/**
 	 * Gets the action for the flag runner
 	 * @param space the current space environment
@@ -144,64 +156,42 @@ public class LITBOIZ extends TeamClient {
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
 		master.incFireTimer();
-		AbstractAction newAction = null;
 		
 		if(ship.isCarryingFlag()){
-			planning.currentState.haveMap.put(ship.getId(), Mastermind.getCarriedFlag(space, ship).getId());
+			planning.currentState.haveMap.put(ship.getId(), ship.getFlag().getId());
 			planning.currentState.chasingMap.put(ship.getId(), null);
-			boolean isReturning = planning.returnFlag(ship, Mastermind.getCarriedFlag(space, ship));
+			boolean isReturning = planning.returnFlag(ship, ship.getFlag());
 			if(isReturning){
 				return returnToBaseAction(space, ship);
 			}
 		} else {
 			if(planning.currentState.haveMap.get(ship.getId()) != null){
 				//we lost or deposited the flag
+				System.out.println("LOSTITTTTCCCC C CC\n");
 				planning.currentState.haveMap.put(ship.getId(), null);
+				return getFlagAction(space, ship);
 			}
 		}
 		
-		//determine if ship is carrying flag
-//		if(ship.isCarryingFlag()) {
-////			System.out.println("GOT THE FLAG");
-//			return returnToBaseAction(space, ship);
-//		}
-		
 		//if ship is dead, set a new action
+		if(!ourShip.isAlive()){
+			planning.currentState.haveMap.put(ship.getId(), null);
+			planning.currentState.chasingMap.put(ship.getId(), null);
+			return new DoNothingAction();
+		}
 		//TODO testing planning
-		if(!ourShip.isAlive()
-			|| current == null
+		if(current == null
 			|| current.isMovementFinished(space)
 			|| master.getCurrentAction().equals(master.ACTION_FIND_FLAG)){
-			newAction = getFlagAction(space, ship);	
+			return getFlagAction(space, ship);	
 		} 
-		else if(ship.getEnergy() < ENERGY_THRESHOLD){
-			newAction = getBeaconAction(space, ship);
+		else if(ship.getEnergy() < HEALTH_THRESHOLD) {
+			return getHealthAction(space, ship);
 		}
 		else {
-			newAction = ship.getCurrentAction();
+			return getFlagAction(space, ship);	
 		}
 		//TODO testing planning
-		
-		
-//		if(!ourShip.isAlive()){		
-//			//clear graph and movement stack
-//			newAction = getFlagAction(space, ship);
-//		}
-//		// aim for a beacon if there isn't enough energy
-//		else if (ship.getEnergy() < ENERGY_THRESHOLD) {
-//			newAction = getBeaconAction(space, ship);
-//		}
-//
-//		// otherwise aim for the nearest flag
-//		else if (!ship.isCarryingFlag() || current == null || current.isMovementFinished(space) || master.getCurrentAction().equals(master.ACTION_FIND_FLAG)) {
-//			newAction = getFlagAction(space, ship);
-//		} 
-//		else {
-//			newAction = ship.getCurrentAction();
-//		}	
-		
-//		master.setOldShipEnergy(ship.getEnergy());
-		return newAction; 
 	}
 	
 	public AbstractAction returnToBaseAction(Toroidal2DPhysics space, Ship ship){		
@@ -248,8 +238,11 @@ public class LITBOIZ extends TeamClient {
 		master.setCurrentAction(master.ACTION_CHASE_ENEMY);
 
 		if (currentEnemy == null) {
+			Ship enemy = master.pickNearestEnemyShip(space, ship);
+			return getMoveToObjectAction(space, ship, enemy);
 			//if no enemy, go to beacon
-			return getBeaconAction(space, ship);	
+//			System.out.println("THERE'S NO ENEMY, GET HELLA HEALTH");
+//			return getHealthAction(space, ship);
 		} 
 		else {
 			return getMoveToObjectAction(space, ship, currentEnemy);
@@ -259,11 +252,16 @@ public class LITBOIZ extends TeamClient {
 	private AbstractAction getAsteroidCollectorAction(Toroidal2DPhysics space,
 			Ship ship) {
 		//set A* counter higher for resource collectors
-		master.aStarCounterReplan = 30;
-		Position currentPosition = ship.getPosition();
+//		master.aStarCounterReplan = 30;
 		Asteroid currentAsteroid = Mastermind.pickHighestValueFreeAsteroid(space, ship);
 		master.currentTarget = currentAsteroid;
 		master.setCurrentAction(master.ACTION_FIND_RESOURCE);
+		
+		if(!ship.isAlive()){
+			//ship is dead so reset everything
+			planning.currentState.collectingMap.put(ship.getId(), null);
+			return new DoNothingAction();
+		}
 
 		//if can afford base, go to base site
 		if(canBuyBase){
@@ -277,45 +275,74 @@ public class LITBOIZ extends TeamClient {
 				return new LITBOIZMOVEACTION(space, ship.getPosition(), basePositions.get(3));
 			} 
 		}
-
-			//if(ship.getEnergy() < 1000) {
-//				Base closestBase = Mastermind.findNearestBase(space, ship);
-//				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
-	
-				// find shortest healing object
-//				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
-//						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
-//						|| closestBase.getEnergy() < 50) { 
-//					return getBeaconAction(space, ship);
-//				} else {
-//					return returnToBaseAction(space, ship);
-//				}
-			//}
-		//planning.
-
-
-		// if the ship has enough resourcesAvailable, take it back to base
-//		if (ship.getResources().getTotal() > 500) {
-//			return returnToBaseAction(space, ship);
-//		}
+		
+		boolean canReturnToBase = planning.returnResource(ship);
+		if(canReturnToBase){
+			return returnToBaseAction(space, ship);
+		}
+		
+		//find mineable asteroids
+		Set<Asteroid> allAsteroids = space.getAsteroids();
+		Set<Asteroid> asteroids = new HashSet<>();
+		for(Asteroid asteroid: allAsteroids) {
+			if(asteroid.isMineable()) {
+				asteroids.add(asteroid);
+			}
+		}
+		//find closest asteroid
+		for(int i = 0; i < asteroids.size(); i++){
+			Asteroid closestAsteroid = Mastermind.findClosestAsteroidInSet(space, ship, asteroids);
+			if (closestAsteroid == null) break;
+			
+			boolean canChase = planning.getResource(ship, closestAsteroid);
+			if(canChase){
+				//add to planning state
+				planning.currentState.collectingMap.put(ship.getId(), closestAsteroid.getId());
+				master.currentTarget = closestAsteroid;
+		        return getMoveToObjectAction(space, ship, closestAsteroid);
+			} else {
+				asteroids.remove(closestAsteroid);
+			}
+		}
+		
+		planning.currentState.collectingMap.put(ship.getId(), null);
+		
+		if(ship.getEnergy() < 2000) {
+			return getHealthAction(space, ship);
+		} else {
+	        return getMoveToObjectAction(space, ship, Mastermind.pickHighestValueFreeAsteroid(space, ship));
+		}
 
 		// otherwise aim for the asteroid
 		
-		if (currentAsteroid != null) {
-			Position asteroidPos = currentAsteroid.getPosition();
-	        double distanceToAsteroid = space.findShortestDistance(asteroidPos, currentPosition);
-	        if(Math.abs(asteroidPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentAsteroid);
-	        }
-	        else if(distanceToAsteroid < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
-	        	return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentAsteroid);
-	        }
-	        else{ 
-	        	return getMoveToObjectAction(space, ship, currentAsteroid);
-	        }
-		} else {
-			return ship.getCurrentAction();// TODO this is the default 
-		}
+//		if (currentAsteroid != null) {
+//			Position asteroidPos = currentAsteroid.getPosition();
+//	        double distanceToAsteroid = space.findShortestDistance(asteroidPos, currentPosition);
+//	        if(Math.abs(asteroidPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
+//	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentAsteroid);
+//	        }
+//	        else if(distanceToAsteroid < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
+//	        	return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentAsteroid);
+//	        }
+//	        else{ 
+//	        	return getMoveToObjectAction(space, ship, currentAsteroid);
+//	        }
+//		} else {
+//			return ship.getCurrentAction();// TODO this is the default 
+//		}
+		
+		
+//		if (currentAsteroid != null) {
+//			boolean gettingResource = planning.getResource(ship, currentAsteroid);
+//			if(gettingResource){
+//				Position asteroidPos = currentAsteroid.getPosition();
+//		        double distanceToAsteroid = space.findShortestDistance(asteroidPos, currentPosition);
+//		        
+//				return getMoveToObjectAction(space, ship, currentAsteroid);
+//			}
+//		}  else {
+//			return ship.getCurrentAction();// TODO this is the default 
+//		}
 
 	}
 	
@@ -333,97 +360,57 @@ public class LITBOIZ extends TeamClient {
 	}
 	
 	public AbstractAction getFlagAction(Toroidal2DPhysics space, Ship ship){
-		Position currentPosition = ship.getPosition();
-		Flag currentFlag = Mastermind.pickNearestEnemyFlag(space, ship);
-		master.currentTarget = currentFlag;
-		master.setCurrentAction(master.ACTION_FIND_FLAG);
 		
+		master.setCurrentAction(master.ACTION_FIND_FLAG);
 		
 		//TODO testing planning
 		//get all flags
 		Set<Flag> flags = space.getFlags();
-		//find closest flag
-		for(Flag f : flags){
+		//find closest free flag
+		for(int i = 0; i < flags.size(); i++){
 			Flag closestEnemyFlag = Mastermind.findClosestEnemyFlagInSet(space, ship, flags);
 			if (closestEnemyFlag == null) break;
 			
 			boolean canChase = planning.chaseFlag(ship, closestEnemyFlag);
 			if(canChase){
 				//add to planning state
-				planning.currentState.chasingMap.put(ship.getId(), currentFlag.getId());
-		        return getMoveToObjectAction(space, ship, currentFlag);
+				planning.currentState.chasingMap.put(ship.getId(), closestEnemyFlag.getId());
+				master.currentTarget = closestEnemyFlag;
+		        return getMoveToObjectAction(space, ship, closestEnemyFlag);
 			} else {
 				flags.remove(closestEnemyFlag);
 			}
 		}
 		
-		
-		
-		//if flag already being chased find a new one
-		//if(flag == null) break;
-		//do this 
-		
-		//TODO testing planning
-		boolean canChase = planning.chaseFlag(ship, currentFlag);
-		if(canChase){
-			//add to planning state
-			planning.currentState.chasingMap.put(ship.getId(), currentFlag.getId());
-
-	        return getMoveToObjectAction(space, ship, currentFlag);
-		} 
-		else {
-			//TODO since currentFlag is taken, find a new flag to chase
-			if(ship.getEnergy() < 1000) {
-				Base closestBase = Mastermind.findNearestBase(space, ship);
-				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
-
-				// find shortest healing object
-				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
-						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
-						|| closestBase.getEnergy() < 50) { 
-					return getBeaconAction(space, ship);
-				} else {
-					return returnToBaseAction(space, ship);
-				}
-			} else {
-				// kill everybody
-				return getChaseAction(space, ship);
-			}
+		//if no free enemy flag is found
+		if(ship.getEnergy() < HEALTH_THRESHOLD) {
+			return getHealthAction(space, ship);
+		} else {
+			// kill everybody
+			return getChaseAction(space, ship);
 		}
+		//TODO testing planning
+	}
+	
+	/**
+	 * Decides whether to go to base or beacon for health
+	 * @param space
+	 * @param ship
+	 * @return
+	 */
+	public AbstractAction getHealthAction(Toroidal2DPhysics space, Ship ship){
+		Base closestBase = Mastermind.findNearestBase(space, ship);
+		Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
 
-//		if (currentFlag == null) {
-//			//if no flag, go to beacon
-//			if(ship.getEnergy() < 1000) {
-//				
-//				Base closestBase = Mastermind.findNearestBase(space, ship);
-//				Beacon closestBeacon = Mastermind.pickNearestBeacon(space, ship);
-//
-//				// find shortest healing object
-//				if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
-//						< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
-//						|| closestBase.getEnergy() < 50) { 
-//					return getBeaconAction(space, ship);
-//				} else {
-//					return returnToBaseAction(space, ship);
-//				}
-//			} else {
-//				// kill everybody
-//				return getChaseAction(space, ship);
-//			}
-//		} 
-//		else {
-//	        Position flagPos = currentFlag.getPosition();
-//	        double distanceToFlag = space.findShortestDistance(flagPos, currentPosition);
-//	        if(Math.abs(flagPos.getX() - currentPosition.getX()) < 1){ //prevent infinite slope
-//	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);
-//	        }
-//	        else if(distanceToFlag < Mastermind.enemyDistanceThresholdMedium){ //slow down and directly target enemy
-//	            targetedPosition = null;
-//	            return new LITBOIZMOVETOOBJECTACTION(space, currentPosition, currentFlag);   
-//	        }
-//	        else{ 
-//	        	return getMoveToObjectAction(space, ship, currentFlag);
-//	        }
+		// find shortest healing object
+//		if(space.findShortestDistance(ship.getPosition(), closestBeacon.getPosition()) 
+//				< space.findShortestDistance(ship.getPosition(), closestBase.getPosition())
+//				|| closestBase.getEnergy() + ship.getEnergy() < ENERGY_THRESHOLD) { 
+			System.out.println(ship.getId() + " YO IM FLAG SHIP & GOIN TO BACON, THIS WHAT I WAS DOING THO " + ship.getCurrentAction() + " AND MY HEALTH IS " + ship.getEnergy());
+			return getBeaconAction(space, ship);
+//		} else {
+//			System.out.println(ship.getId() + " YO IM FLAG SHIP & GOIN TO B@SE, THIS WHAT I WAS DOING THO " + ship.getCurrentAction() + " AND MY HEALTH IS " + ship.getEnergy());
+//			return returnToBaseAction(space, ship);
 //		}
 	}
 	
@@ -535,7 +522,8 @@ public class LITBOIZ extends TeamClient {
 		// can I buy a ship?
 		//cost of every item doubles every purchase
 		//limit us to 5 ships and then buy bases after that
-		if (numShips < 5 && purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable)) {
+		if ( numBases > 3
+				|| (numShips < MAX_NUM_SHIPS && purchaseCosts.canAfford(PurchaseTypes.SHIP, resourcesAvailable))) {
 			for (AbstractActionableObject actionableObject : actionableObjects) {
 				if (actionableObject instanceof Base) {
 					Base base = (Base) actionableObject;
@@ -546,8 +534,8 @@ public class LITBOIZ extends TeamClient {
 			}
 
 		}
-		//after we have 5 ships, focus on buying bases
-		if(numShips >= 5){
+		//after we have MAX_NUM_SHIPS ships, focus on buying bases
+		if(numShips >= MAX_NUM_SHIPS){
 			canBuyBase = purchaseCosts.canAfford(PurchaseTypes.BASE, resourcesAvailable);
 			if (canBuyBase) {
 				
@@ -563,13 +551,12 @@ public class LITBOIZ extends TeamClient {
 					asteroidCollectorPos = shipList.get(asteroidCollectorID).getPosition();
 				}
 				
-	//			System.out.println("trying to buy base");
-	//			System.out.println(asteroidCollectorPos);
 				if(space.findShortestDistance(asteroidCollectorPos, basePositions.get(0)) < 3
 					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(1)) < 3
 					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(2)) < 3
 					|| space.findShortestDistance(asteroidCollectorPos, basePositions.get(3)) < 3){
 					purchases.put(asteroidCollectorID, PurchaseTypes.BASE);
+					numBases++;
 					System.out.println("Buying a base!!");
 				}
 			}
