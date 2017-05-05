@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 
-import javax.print.DocFlavor;
-
+import neld9968.Planning.StateNode;
 import spacesettlers.actions.*;
 import spacesettlers.objects.*;
 import spacesettlers.objects.powerups.*;
@@ -156,6 +156,15 @@ public class LITBOIZ extends TeamClient {
 			Ship ship) {
 		AbstractAction current = ship.getCurrentAction();
 		master.incFireTimer();
+		
+		//search for a goal state
+		PredictedState state = new PredictedState();
+		Planning.StateNode treeNode = planning.populateSearchTree(planning.new StateNode(state), 0);
+		Stack<Planning.StateNode> planStack = planning.searchTree(treeNode, new Stack<Planning.StateNode>());
+		while(!planStack.isEmpty()){
+			StateNode node = planStack.pop();
+			System.out.println(node.actionLeadingToState);
+		}
 		
 		if(ship.isCarryingFlag()){
 			planning.currentState.haveMap.put(ship.getId(), ship.getFlag().getId());
