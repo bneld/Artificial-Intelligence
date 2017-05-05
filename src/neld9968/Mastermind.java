@@ -4,8 +4,6 @@ import spacesettlers.objects.*;
 import spacesettlers.simulator.Toroidal2DPhysics;
 import spacesettlers.utilities.*;
 import spacesettlers.objects.weapons.*;
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -262,6 +260,13 @@ public class Mastermind {
 		return nearestFlag;
 	}
 	
+	/**
+	 * Finds closest enemy flags in the given set
+	 * @param space
+	 * @param ship
+	 * @param set
+	 * return closest flag
+	 */
 	public static Flag findClosestEnemyFlagInSet(Toroidal2DPhysics space, Ship ship, Set<Flag> set){
 		double minDistance = Double.POSITIVE_INFINITY;
 		Flag nearestFlag = null;
@@ -275,7 +280,7 @@ public class Mastermind {
 					|| flag.isBeingCarried()) {
 				continue;
 			}
-			// find shortest distance of ships
+			// find shortest distance of flags
 			double distance = space.findShortestDistance(ship.getPosition(), flag.getPosition());
 			if (distance < minDistance) {
 				minDistance = distance;
@@ -286,6 +291,13 @@ public class Mastermind {
 		return nearestFlag;
 	}
 	
+	/**
+	 * Finds closest asteroid in the given set
+	 * @param space
+	 * @param ship
+	 * @param set
+	 * return closest asteroid
+	 */
 	public static Asteroid findClosestAsteroidInSet(Toroidal2DPhysics space, Ship ship, Set<Asteroid> set){
 		double minDistance = Double.POSITIVE_INFINITY;
 		Asteroid nearestAsteroid = null;
@@ -433,131 +445,6 @@ public class Mastermind {
     }
 	
 	/**
-	 * a* search algorithm. returns stack of all nodes in graph
-	 * @param start position
-	 * @param target position
-	 * @param points is a list of points besides the start and end nodes
-	 * @param space simulator object
-	 * @return oldEnemyPosition 
-	 */
-//	public Stack<Node> aStar(Position start, Position target, ArrayList<Position> points, Toroidal2DPhysics space){
-//		
-//		// create stack and flags for first initialization 
-//		Stack<Node> parents = new Stack<>();
-//		Node lastVisited;
-//		boolean startExists = false;
-//		boolean targetExists = false;
-//		
-//		// check if start and target are already included in points
-//		for(Position p : points) {
-//			if(p.getX() == start.getX() && p.getY() == start.getY()){
-//				startExists = true;
-//			}
-//			if(p.getX() == target.getX() && p.getY() == target.getY()){
-//				targetExists = true;
-//			}
-//		}
-//		
-//		// add start or target to points if not already there
-//		if(!startExists) {
-//			points.add(start);
-//		}
-//		if(!targetExists) {
-//			points.add(target);
-//		}
-//
-//		// create new graph
-//		LitGraph graph = new LitGraph(this, start, target, points, space);
-//		
-//		//set of visited nodes
-//		Set<Node> closed = new HashSet<>();
-//		
-//		//empty priority queue for unexplored nodes
-//		PriorityQueue<Node> fringe = new PriorityQueue<>(10, new Comparator<Node>(){
-//			@Override
-//			public int compare(Node arg0, Node arg1) {
-//				if(arg0.f == arg1.f) { return 0; }
-//				//comparator is reversed to put smallest value on top of queue
-//				else { return (arg0.f < arg1.f) ? 1 : -1; }
-//			}
-//		});
-//		
-//		graph.startNode.g = 0;
-//		
-//		//add all children of initial node to fringe
-//		for(Edge e : graph.startNode.edges){
-//			Node child = e.end;
-//			child.g = e.weight;
-//			child.f = child.g + child.h; //with priority f(n) = g(n) + h(n)
-//			fringe.add(child);	
-//		}
-//		
-//		//add start to stack for saving optimal path
-//		parents.add(graph.startNode);
-//		lastVisited = graph.startNode;
-//
-//		//loop
-//		while(true) {
-//			//increment timeout
-//			timeout++;
-//			
-//			//check for timeout
-//			if (timeout > 1000) { 
-//				timeout = 0;
-//				return checkStartNode(reverseStack(parents), start);
-//			}
-//			
-//			//target was not found
-//			if(fringe.isEmpty()){
-//				return checkStartNode(reverseStack(parents), start);
-//			}
-//			
-//			//find node with next best f(n)
-//			Node next = fringe.poll();
-//			
-//			//h(n)=0 means found target
-//			if(next.h == 0) {
-//				parents.add(next);
-//				return checkStartNode(reverseStack(parents), start);
-//			}
-//			
-//			if(!closed.contains(next)){
-//				//visit that node
-//				closed.add(next);
-//				
-//				if(!lastVisited.equals(parents.peek())){
-//					parents.pop();
-//				}
-//				
-//				//add to parent stack
-//				parents.push(next);
-//				
-//				//adding children to fringe
-//				for(Edge e : next.edges){
-//					Node child = e.end;
-//					child.g = e.weight + next.g;
-//					if(child.f > child.g + child.h) child.f = child.g + child.h;
-//						
-//					if(!fringe.contains(child) && !closed.contains(child)){
-//						 fringe.add(child);	
-//					}
-//				}
-//			}
-//		}
-//	}
-	
-	/**
-	 * checks if start node is at top of stack
-	 * @return stack of nodes from graph 
-	 */
-//	public static Stack<Node> checkStartNode(Stack<Node> stack, Position startPosition) {
-//		if(stack.peek().position.getX() == startPosition.getX() && stack.peek().position.getY() == startPosition.getY()){
-//			stack.pop();
-//		}
-//		return stack;
-//	}
-	
-	/**
 	 * Check to see if following a straight line path between two given locations would result in a collision with a provided set of obstructions
 	 * Edited to narrow focus of obstruction analysis
 	 * 
@@ -629,187 +516,4 @@ public class Mastermind {
 		return bestAsteroid;
 	}
 	
-	/**
-	 * returns alternate points when there is an obstruction in the original path (using limited recursion)
-	 * @param space simulator object 
-	 * @param ship our ship 
-	 * @param start position 
-	 * @param end position 
-	 * @param counter for exit condition 
-	 * @return result containing alternate points 
-	 */
-	public ArrayList<Position> getAlternatePoints(Toroidal2DPhysics space, Ship ship, Position start, Position end, int counter){
-		
-		//check if points are equal
-		if(start.getX() == end.getX() && start.getY() == end.getY()){
-			return null;
-		} 
-	
-		//recursion is limited to 5 times
-		//if no path is found after 5 recursions, increase angle of search
-		if (counter > 4) {
-			return null;
-			//ArrayList<Position> extraPoints = new ArrayList<>();
-			//for(double i = 400; i < 700; i+= 100){
-				//Position[] pos = getPerpendicularPositions(start, end, i);
-				//extraPoints.add(pos[0]);
-				//extraPoints.add(pos[1]);
-			//}
-//			for(double angle : DEGREES_45_TO_85_BY_FIVE){
-//				Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
-//				Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
-//				extraPoints.add(right);
-//				extraPoints.add(left);
-//			}
-			
-			//return extraPoints;
-		}
-		
-		ArrayList<Position> result = new ArrayList<>();
-		// check if path is clear 
-		if(isPathClearOfObstructions(start, end, getAllObstructionsBetweenAbstractObjects(space, this.currentTarget), ship.getRadius(), space)){
-			//do nothing
-		} else {
-			
-			//TODO 
-			//if(distance to obstruction is < 20) DEGREES_45
-			// else if (distance to obstruction is < 40) DEGREES_25
-			// else { DEGREES_15
-			Position toTheRight = alterPath(start, findMidpoint(start, end), DEGREES_25); // position to the right 
-			Position toTheLeft = alterPath(start, findMidpoint(start, end), -DEGREES_25);  // position to the left
-			
-			// add to result 
-			result.add(toTheLeft);
-			result.add(toTheRight);
-			
-			// if path to right is clear
-			if(!isPathClearOfObstructions(start, toTheRight, getAllObstructions(space, ship), ship.getRadius(), space)){
-				ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, toTheRight, ++counter);
-				if(alternatePoints != null){
-					result.addAll(alternatePoints);
-				}
-			}
-			
-			//  if path to left is clear
-			if(!isPathClearOfObstructions(start, toTheLeft, getAllObstructions(space, ship), ship.getRadius(), space)){
-				ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, toTheLeft, ++counter);
-				if(alternatePoints != null){
-					result.addAll(alternatePoints);
-				}
-			}
-			
-			//TODO ADDING ANGLES
-			if(counter == 0){
-				for(double i = 400; i < 1000; i+= 100){
-					Position[] pos = getPerpendicularPositions(start, end, i);
-					result.add(pos[0]);
-					result.add(pos[1]);
-				}
-				
-				//add point behind objective
-				result.add(new Position(end.getX() + (end.getX() - start.getX()), 
-						end.getY() + (end.getY() - start.getY())));
-				
-				//add point behind ship
-//				result.add(new Position(start.getX() - (end.getX() - start.getX()), 
-//						start.getY() - (end.getY() - start.getY())));
-				
-//				for(double angle : DEGREES_45_TO_85_BY_FIVE){
-//					Position right = alterPath(start, findMidpoint(start, end), angle); // position to the right 
-//					Position left = alterPath(start, findMidpoint(start, end), -angle);  // position to the left
-//					result.add(right);
-//					result.add(left);
-//					if(!isPathClearOfObstructions(start, right, getAllObstructions(space, ship), ship.getRadius(), space)){
-//						ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, right, ++counter);
-//						if(alternatePoints != null){
-//							result.addAll(alternatePoints);
-//						}
-//					}
-//					
-//					//  if path to left is clear
-//					if(!isPathClearOfObstructions(start, left, getAllObstructions(space, ship), ship.getRadius(), space)){
-//						ArrayList<Position> alternatePoints = getAlternatePoints(space, ship, start, left, ++counter);
-//						if(alternatePoints != null){
-//							result.addAll(alternatePoints);
-//						}
-//					}
-//				}
-			}
-			//ADDING ANGLES
-			
-		}
-		return result;
-	}
-	
-	public static Position[] getPerpendicularPositions(Position start, Position end, double distanceFromTarget){
-		double vectorX = end.getX() - start.getX();
-		double vectorY = end.getY() - start.getY();
-		
-		//find perpendicular vector
-		double perpX = 1;
-		double perpY = (0 - perpX*vectorX) / vectorY;
-		double magnitude = Math.sqrt(Math.pow(perpX, 2) + Math.pow(perpY, 2));
-		//normalize 
-		perpX /= magnitude;
-		perpY /= magnitude;
-		//scale up
-		Position p1 = new Position(end.getX() + distanceFromTarget*perpX, end.getY() + distanceFromTarget*perpY);
-		Position p2 = new Position(end.getX() - distanceFromTarget*perpX, end.getY() - distanceFromTarget*perpY);
-		return new Position[]{p1, p2};
-	}
-	
-	/**
-	 * reverses stack generated from a*
-	 * @param stack of nodes in graph
-	 * @return reversedStack
-	 */
-//	public static Stack<Node> reverseStack(Stack<Node> stack){
-//		
-//		Stack<Node> reversedStack = new Stack<>();
-//		while(!stack.isEmpty()){ 
-//			reversedStack.push(stack.pop());
-//		}
-//		return reversedStack;
-//	}
-	
-	/** Used for genetic algorithm to initialize the chromosome's parameters for the agent.
-	 * Knows if it should use random values for first gen or take values from parent generation.
-	 * 
-	 */
-//	public static LITCHROMOSOME initChromosome() {
-//		File numberFile = new File("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt");
-//		boolean randomize = !(new File("/Users/Luis/Documents/workspace/LITBOIZ/children.csv").exists());
-//		int numberToWrite = 0;
-//		if(randomize){
-//			return new LITCHROMOSOME();	
-//		}
-//		else {
-//			try {
-//				
-//				if(!numberFile.exists()){
-//					numberToWrite = 0;
-//				}
-//				else {
-//					//read number line from LITNUMBER.txt
-//					FileInputStream fileInStream = new FileInputStream(numberFile);
-//					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInStream));
-//					String line = reader.readLine();
-//					
-//					if(line != null && !line.isEmpty()){
-//						numberToWrite = Integer.parseInt(line);
-//					} else {
-//						numberToWrite = 0;
-//					}
-//					reader.close();
-//				}
-//				FileWriter f2 = new FileWriter("/Users/Luis/Documents/workspace/LITBOIZ/LITNUMBER.txt", false);
-//				f2.write(Integer.toString(numberToWrite + 1));		    
-//			    f2.close();
-//			    return LITCHROMOSOME.getChromosomeFromCsv(numberToWrite);
-//			} catch (Exception e) {
-//	            e.printStackTrace();
-//	        }
-//			return null;
-//		}
-//	}
 }

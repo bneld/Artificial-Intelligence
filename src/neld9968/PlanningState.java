@@ -7,11 +7,15 @@ import java.util.UUID;
 import spacesettlers.clients.ImmutableTeamInfo;
 import spacesettlers.objects.AbstractActionableObject;
 import spacesettlers.objects.AbstractObject;
-import spacesettlers.objects.Asteroid;
-import spacesettlers.objects.Flag;
 import spacesettlers.objects.Ship;
 import spacesettlers.simulator.Toroidal2DPhysics;
 
+/**
+ * HOlds the planning state and all of it's properties
+ * 
+ * 
+ * @author Luis & Brian
+ */
 public class PlanningState {
 	
 	//state
@@ -39,6 +43,13 @@ public class PlanningState {
 		this.collectingMap = (HashMap<UUID, UUID>) state.collectingMap.clone();
 	}
 	
+	/**
+	 * creates and initializes first state
+	 * @param space
+	 * @param ourShips
+	 * 
+	 * @return initial state
+	 */
 	public static PlanningState getInitialState(Toroidal2DPhysics space, 
 			Set<AbstractActionableObject> ourShips){
 		PlanningState initState = new PlanningState(space);
@@ -59,5 +70,4 @@ public class PlanningState {
 		
 		return initState;
 	}
-	//public static Set<AbstractObject>
 }
